@@ -1,1 +1,4 @@
 # fugitiv
+
+dependencies :
+python-netifaces
