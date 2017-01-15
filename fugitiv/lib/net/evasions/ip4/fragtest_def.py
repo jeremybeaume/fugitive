@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-from scapy import *
-#from ../baseevasion import *
-
-
 """
 ** General Information for IPv4 information test **
 
@@ -49,7 +45,10 @@ Gives the fragments :
      |A|junk|
        |  B |C|
               |DATA|
+
+The MF flag is not set on the overlaping fragments
 """
+
 overlap_test={
     0 : {
         'input' : [
@@ -71,7 +70,7 @@ overlap_test={
        'input' : [
             '|A B C|',
             '  |D|  '
-        ]
+        ],
         'output':['|ABC|', '|ADC|'],
         'frags':[
             #output |ABC|
@@ -87,7 +86,7 @@ overlap_test={
         'input' : [
             '|A B|',
             '  |C|'
-        ]
+        ],
         'output':['|AB|', '|AC|'],
         'frags':[
             #output |AB|
@@ -103,7 +102,7 @@ overlap_test={
         'input' : [
             '|A B|  ',
             '  |C D|'
-        ]
+        ],
         'output':['|ABD|', '|ACD|'],
         'frags':[
             #output |ABD|
@@ -119,7 +118,7 @@ overlap_test={
         'input' : [
             '|A B|',
             '|C D|'
-        ]
+        ],
         'output':['|AB|', '|CD|'],
         'frags':[
             #output |AB|

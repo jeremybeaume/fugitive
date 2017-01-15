@@ -24,9 +24,10 @@ class TCPsocket(PacketReceiver):
     ECE = 0x40
     CWR = 0x80
 
-    def __init__(self, iface, target, port):
+    def __init__(self, iface, target, port, evasion=None):
         PacketReceiver.__init__(self, iface)
         self._iface = iface
+        self._evasion = evasion;
 
         self._dst_ip   = target
         self._dst_port = port
@@ -136,8 +137,15 @@ class TCPsocket(PacketReceiver):
     #### UTILS ####
 
     def _send_pkt(self, pkt):
-        #send with scapy
-        sendp(Ether() / pkt, iface=self._iface, verbose=False)
+        # evade packet
+        if self._evasion is not None:
+            pkt_list = self._evasion.evade(pkt)
+        else:
+            pkt_list = [pkt]
+
+        # send evaded packets
+        for packet in pkt_list:
+            sendp(Ether() / packet, iface=self._iface, verbose=False)
 
     def _wait_ack(self):
         """ Wait for an ACK packet, and check synchronization """
