@@ -13,5 +13,8 @@ def gethostbyname(name):
 def get_source_port():
     return random.randint(1000,6000)
 
+def get_iface_mac(name):
+    return netifaces.ifaddresses(name)[netifaces.AF_LINK][0]["addr"]
+
 def get_iface_ip4(name):
     return netifaces.ifaddresses(name)[netifaces.AF_INET][0]["addr"]

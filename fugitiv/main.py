@@ -9,5 +9,5 @@ from scapy.all import *
 
 
 for i in range(0,3):
-    pkt = wait_for_packet(iface="eth1", condition=(lambda pkt : pkt[IP].src == "10.0.10.2"))
+    pkt = wait_for_packet(iface="eth1", condition=None)
     pkt.show()

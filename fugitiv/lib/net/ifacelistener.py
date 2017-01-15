@@ -5,12 +5,16 @@
 import scapy.all as scapy 
 import Queue
 import threading
+import utils
 from ..utils import *
 
 
 def wait_for_packet(iface, condition=None, timeout=None):
 	""" Simply wait for a packet, matching condition lambda, untile timeout (return None)
 	Create a temporary receiver, wait for a packet, close the receiver """
+	if condition == None:
+		condition = lambda x : True
+
 	receiver = _LambdaPacketReceiver(iface=iface, condition=condition)
 	pkt = receiver.recv_packet(timeout=timeout)
 	receiver.close()
@@ -90,10 +94,13 @@ class _IfaceSniffer:
 
 	When receiving a packet, circle through receivers, and calls
 	_give_packet on them.
+
+	Filter inbound packet based on interface MAC address
 	"""
 
 	def __init__(self, iface):
 		self._iface = iface
+		self._mac = utils.get_iface_mac(self._iface)
 		self._started = False
 
 	def start(self):
@@ -112,8 +119,11 @@ class _IfaceSniffer:
 		self._receivers.remove(receiver)
 
 	def handle_packet(self, pkt):
-		for receiver in self._receivers :
-			receiver._give_packet(pkt)
+		""" Receive a sniffed packet """
+		# check that itś an inbound packet
+		if pkt[scapy.Ether].dst == self._mac:
+			for receiver in self._receivers : # if itś a response for the receiver
+				receiver._give_packet(pkt) # store it in its queue
 
 
 def _IfaceSniffer_thread(sniffer):

@@ -3,7 +3,7 @@
 # Written by : Jeremy BEAUME
 
 import random
-import scapy.all as scapy
+from scapy.all import *
 import utils
 
 class TCPsocket:
@@ -49,7 +49,7 @@ class TCPsocket:
 
 
     def send_pkt(self, pkt):
-        scapy.sendp(ETHER() / pkt, iface=self._iface)
+        scapy.sendp(Ether() / pkt, iface=self._iface)
 
     #### UTILS ####
 
