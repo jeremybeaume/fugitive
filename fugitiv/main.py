@@ -10,11 +10,13 @@ from lib.net.tcpsocket import *
 
 from lib.net.evasions import *
 
+from lib.net.evasions.ip4.fragtest_def import *
 
 def test_evasion(test_id, output, reverse):
+    print
     signature = "abcdefghijklmnopqrstuvwxyz"
 
-    frag_evasion = IP4OverlapFragEvasion(signature, testid=test_id,
+    frag_evasion = IP4OverlapFragEvasion("efgh", testid=test_id,
             outputid=output, reverse=reverse);
 
 
@@ -24,11 +26,23 @@ def test_evasion(test_id, output, reverse):
     payload="GET /?data="+signature+" HTTP/1.1\r\nHost:10.0.10.2\r\n\r\n"
     s.write(payload)
 
-    print
-    print
-    print s.read()
+    try:
+        rep = s.read()
+    except IOError:
+        rep = ""
+
+    if signature in rep :
+        raise_success("SUCCESS")
+    else:
+        raise_error("FAIL")
+       
 
     s.close()
 
-test_evasion(1, 0, False)
-test_evasion(1, 0, True)
+for test_id in overlap_evasion.keys():
+        test_info = overlap_evasion[test_id]
+        for r in range(0, len(test_info['output'])):
+            test_evasion(test_id, r, False)
+            if test_info['reverse']:
+                test_evasion(test_id, r, True)
+

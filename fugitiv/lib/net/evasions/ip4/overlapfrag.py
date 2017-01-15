@@ -58,7 +58,10 @@ class IP4OverlapFragEvasion(SignatureEvasion):
         frag_list = fragutils.fragment_packet(pkt, self._testinfo['frags'][self._outputid], sizes)
 
         if self._reverse :
-            frag_list.reverse()
+            l = frag_list[1:-1]
+            l.reverse()
+            rev = [frag_list[0]] + l + [frag_list[-1]]
+            frag_list = rev
 
         fragutils.print_frag_list(frag_list)
 
