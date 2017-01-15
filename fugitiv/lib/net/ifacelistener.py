@@ -5,22 +5,25 @@
 import scapy.all as scapy 
 import Queue
 import threading
-from .. import utils
+from ..utils import *
 
-_iface_sniffers={}
 
-def _get_listener(iface):
-	""" Get the listener for an interface """
-	if iface in _iface_sniffers:
-		return _iface_sniffers[iface]
-	else:
-		l = _IfaceSniffer(iface)
-		_iface_sniffers[iface] = l
-		l.start() #always sniff the interfaces
-		return l
+def wait_for_packet(iface, condition=None, timeout=None):
+	""" Simply wait for a packet, matching condition lambda, untile timeout (return None)
+	Create a temporary receiver, wait for a packet, close the receiver """
+	receiver = _LambdaPacketReceiver(iface=iface, condition=condition)
+	pkt = receiver.recv_packet(timeout=timeout)
+	receiver.close()
+	return pkt;
 
 class PacketReceiver:
-	""" Receiver of packets """
+	"""
+	*Receiver of packets*
+
+	method packet_for_me must be implemented
+
+	Dont forget to close when done with it.
+	"""
 
 	def __init__(self, iface):
 		self._sniffer = _get_listener(iface)
@@ -32,6 +35,7 @@ class PacketReceiver:
 		try:
 			return self._pkt_queue.get(block=True, timeout=timeout)
 		except Queue.Empty:
+			raise_warning("Packet receive timeout")
 			return None
 
 	def packet_for_me(self, pkt):
@@ -39,7 +43,7 @@ class PacketReceiver:
 		To be implemented is inherited classes
 		return true is this packet is to be received
 		"""
-		pass
+		raise NotImplementedError
 
 	def _give_packet(self, pkt):
 		""" Adds a packet for this receiver """
@@ -48,17 +52,44 @@ class PacketReceiver:
 				self._pkt_queue.put(pkt, block=False)
 			except Queue.Full:
 				# Drop packet
-				utils.raise_warning("Packet dropped : queue is full")
+				raise_warning("Packet dropped : queue is full")
 
 	def close(self):
 		""" Closes this receiver ( will not receive packet anymore) """
 		self._sniffer.remove_receiver(self)
 
+class _LambdaPacketReceiver(PacketReceiver):
+	""" Simple PacketReceiver implementation : just a lambda for packet_for_me """
+	def __init__(self, iface, condition):
+		PacketReceiver.__init__(self, iface)
+		self._condition = condition
+
+	def packet_for_me(self, pkt):
+		return self._condition(pkt)
+
+#### Sniffers ####
+
+_iface_sniffers={}
+
+def _get_listener(iface):
+	""" Get the singleton listener for an interface
+	If none exists : create one, and start listening """
+	if iface in _iface_sniffers:
+		return _iface_sniffers[iface]
+	else:
+		l = _IfaceSniffer(iface)
+		_iface_sniffers[iface] = l
+		l.start() #always sniff the interfaces
+		return l
+
 
 class _IfaceSniffer:
 	"""
 	Private class, listening to an interface
-	Should not ne intanciate as is : use get_listener
+	Should not ne intanciate as is : use _get_listener if needed (Singleton)
+
+	When receiving a packet, circle through receivers, and calls
+	_give_packet on them.
 	"""
 
 	def __init__(self, iface):
@@ -81,10 +112,12 @@ class _IfaceSniffer:
 		self._receivers.remove(receiver)
 
 	def handle_packet(self, pkt):
-		utils.raise_info("Packet on " + self._iface)
+		for receiver in self._receivers :
+			receiver._give_packet(pkt)
 
 
 def _IfaceSniffer_thread(sniffer):
-	utils.raise_info("Start sniffing on "+ sniffer._iface)
+	""" Thread de sniff scapy """
+	raise_notice("Start sniffing on "+ sniffer._iface)
 	scapy.sniff(iface=sniffer._iface, prn=lambda pkt: sniffer.handle_packet(pkt))
 

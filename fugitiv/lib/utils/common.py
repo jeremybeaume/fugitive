@@ -33,6 +33,10 @@ def raise_error(msg):
     print colors.RED + str(msg) + colors.DEFAULT;
     sys.stdout.flush()
 
+def raise_notice(msg):
+    print colors.CYAN + str(msg) + colors.DEFAULT;
+    sys.stdout.flush()    
+
 def exit(code=1):
     sys.exit(code)
 

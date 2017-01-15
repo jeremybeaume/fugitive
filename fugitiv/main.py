@@ -3,8 +3,11 @@
 # Written by : Jeremy BEAUME
 
 
-import lib.utils
+from lib.utils import *
 from lib.net.ifacelistener import *
+from scapy.all import *
 
-lib.net.ifacelistener._get_listener("eth1")
-lib.utils.sleep(5)
+
+for i in range(0,3):
+    pkt = wait_for_packet(iface="eth1", condition=(lambda pkt : pkt[IP].src == "10.0.10.2"))
+    pkt.show()
