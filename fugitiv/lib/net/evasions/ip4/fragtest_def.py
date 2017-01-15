@@ -3,26 +3,30 @@
 # Written by : Jeremy BEAUME
 
 """
-** General Information for IPv4 information test **
+** General Incontentation for IPv4 fragmentation evasions **
 
 Dict of IPv4 fragmentation tests :
 base : dict(test_id=>test_infos)
 
 test_infos = dict :
     'input'  : array of string, to be printed vertically, in the list order
-               displays the form of the packets sent
+               displays the content of the packets sent
     'output' : array of string, corresponding to possible outputs defragmentation
     'frags'  : array of fragements array to be sent, for each output,
                to get correct defragmentation for the considered output,
                and junk for the others output
     'reverse': Do the test with fragment sent in other order
+    'evaded' : {'offset':int, 'size':int} : part of the described evasion that is obfuscated
 
 fragment : dict :
     'offset' : offset from the begining of signature area
                (one fragment must at least have offset = 0)
-    'form'   : array of int for content
+    'content'   : array of int for content
                0 means take content of the input packet
                1 means generate junk for this part
+
+The sizes and offset are an indication :
+the actual fragment size and offset may be a multiple of thoses values.
 """
 
 
@@ -33,7 +37,7 @@ The overlap test breaks the packet around the signature :
 DATA | SIGNATURE | DATA
 
 So there is one fragment with begining test data
-it uses the test information to make overlaping fragment around signature
+it uses the test incontentation to make overlaping fragment around signature
 the last fragment is dinal data.
 
 IE : the test :
@@ -49,7 +53,7 @@ Gives the fragments :
 The MF flag is not set on the overlaping fragments
 """
 
-overlap_test={
+overlap_evason={
     0 : {
         'input' : [
             '|A B|',
@@ -58,13 +62,14 @@ overlap_test={
         'output':['|AB|', '|CB|'],
         'frags':[
             #output |AB|
-            [ {'offset':0, 'form':[1, 1]},
-              {'offset':0, 'form':[0   ]} ],
+            [ {'offset':0, 'content':[1, 1]},
+              {'offset':0, 'content':[0   ]} ],
             #output |CB|
-            [ {'offset':0, 'form':[0, 1]},
-              {'offset':0, 'form':[1   ]} ]
+            [ {'offset':0, 'content':[0, 1]},
+              {'offset':0, 'content':[1   ]} ]
         ],
-        'reverse':True
+        'reverse':True,
+        'evaded':{'offset':0, 'size':1}
     },
     1 : {
        'input' : [
@@ -74,13 +79,14 @@ overlap_test={
         'output':['|ABC|', '|ADC|'],
         'frags':[
             #output |ABC|
-            [ {'offset':0, 'form':[1, 1, 1]},
-              {'offset':1, 'form':[   0   ]} ],
+            [ {'offset':0, 'content':[1, 1, 1]},
+              {'offset':1, 'content':[   0   ]} ],
             #output |ADC|
-            [ {'offset':0, 'form':[1, 0, 1]},
-              {'offset':1, 'form':[   1   ]} ]
+            [ {'offset':0, 'content':[1, 0, 1]},
+              {'offset':1, 'content':[   1   ]} ]
         ],
-        'reverse':True
+        'reverse':True,
+        'evaded':{'offset':1, 'size':1}
     },
     2 : {
         'input' : [
@@ -90,13 +96,14 @@ overlap_test={
         'output':['|AB|', '|AC|'],
         'frags':[
             #output |AB|
-            [ {'offset':0, 'form':[1, 1]},
-              {'offset':1, 'form':[   0]} ],
+            [ {'offset':0, 'content':[1, 1]},
+              {'offset':1, 'content':[   0]} ],
             #output |AC|
-            [ {'offset':0, 'form':[1, 0]},
-              {'offset':1, 'form':[   1]} ],
+            [ {'offset':0, 'content':[1, 0]},
+              {'offset':1, 'content':[   1]} ],
         ],
-        'reverse':True
+        'reverse':True,
+        'evaded':{'offset':1, 'size':1}
     },
     3 : {
         'input' : [
@@ -106,28 +113,30 @@ overlap_test={
         'output':['|ABD|', '|ACD|'],
         'frags':[
             #output |ABD|
-            [ {'offset':0, 'form':[1, 1   ]},
-              {'offset':1, 'form':[   0, 1]} ],
+            [ {'offset':0, 'content':[1, 1   ]},
+              {'offset':1, 'content':[   0, 1]} ],
             #output |ACD|
-            [ {'offset':0, 'form':[1, 0,  ]},
-              {'offset':1, 'form':[   1, 1]} ],
+            [ {'offset':0, 'content':[1, 0,  ]},
+              {'offset':1, 'content':[   1, 1]} ],
         ],
-        'reverse':True
+        'reverse':True,
+        'evaded':{'offset':1, 'size':1}
     },
     4 : {
         'input' : [
-            '|A B|',
-            '|C D|'
+            '|A|',
+            '|B|'
         ],
-        'output':['|AB|', '|CD|'],
+        'output':['|A|', '|B|'],
         'frags':[
             #output |AB|
-            [ {'offset':0, 'form':[1, 1]},
-              {'offset':0, 'form':[0, 0]} ],
+            [ {'offset':0, 'content':[1]},
+              {'offset':0, 'content':[0]} ],
             #output |CB|
-            [ {'offset':0, 'form':[0, 0]},
-              {'offset':0, 'form':[1 ,1]} ],
+            [ {'offset':0, 'content':[0]},
+              {'offset':0, 'content':[1]} ],
         ],
-        'reverse':False
+        'reverse':False,
+        'evaded':{'offset':0, 'size':1}
     }
 }
