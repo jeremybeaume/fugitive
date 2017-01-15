@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-import sys,time
+import sys,time,string,math
 
 class colors:
     DEFAULT   = '\033[0m'
@@ -42,3 +42,28 @@ def exit(code=1):
 
 def sleep(n):
     time.sleep(n)
+
+
+def print_non_ascii_string(mystring):
+    for c in mystring:
+        if c in string.ascii_letters or c in string.digits or c in '*!?_-+=/\[]{}%$#@&':
+            sys.stdout.write(c)
+        else:
+            sys.stdout.write('.')
+
+def get_flags_str(value, flags, spaces=False):
+    """
+    flags = string
+    adds flags[i] if (value & 2^i)
+    add spaces else if spaces is True
+    """
+    s = ""
+    mask = 1;
+    for i in range(0,len(flags)):
+        if value & mask :
+            s += flags[i]
+        else:
+            if spaces:
+                s += " "
+        mask *= 2
+    return s

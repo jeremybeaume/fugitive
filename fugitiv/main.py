@@ -10,19 +10,25 @@ from lib.net.tcpsocket import *
 
 from lib.net.evasions import *
 
-signature = "abcdefghijklmnopqrstuvwxyz"
 
-frag_evasion = IP4OverlapFragEvasion(signature, 0, False);
+def test_evasion(test_id, output, reverse):
+    signature = "abcdefghijklmnopqrstuvwxyz"
+
+    frag_evasion = IP4OverlapFragEvasion(signature, testid=test_id,
+            outputid=output, reverse=reverse);
 
 
-s = TCPsocket("eth1", "10.0.10.2", 80, evasion=frag_evasion)
-s.connect()
+    s = TCPsocket("eth1", "10.0.10.2", 80, evasion=frag_evasion)
+    s.connect()
 
-payload="GET /?data="+signature+" HTTP/1.1\r\nHost:10.0.10.2\r\n\r\n"
-s.write(payload)
+    payload="GET /?data="+signature+" HTTP/1.1\r\nHost:10.0.10.2\r\n\r\n"
+    s.write(payload)
 
-print
-print
-print s.read()
+    print
+    print
+    print s.read()
 
-s.close()
+    s.close()
+
+test_evasion(1, 0, False)
+test_evasion(1, 0, True)

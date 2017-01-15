@@ -53,8 +53,20 @@ Gives the fragments :
 The MF flag is not set on the overlaping fragments
 """
 
-overlap_evason={
+overlap_evasion={
     0 : {
+        'input' : [
+            '|A|'
+        ],
+        'output':['|A|'],
+        'frags':[
+            #output |A|
+            [ {'offset':0, 'content':[1]}]
+        ],
+        'reverse':False,
+        'evaded':{'offset':0, 'size':1}
+    },
+    1 : {
         'input' : [
             '|A B|',
             '|C|  '
@@ -71,7 +83,7 @@ overlap_evason={
         'reverse':True,
         'evaded':{'offset':0, 'size':1}
     },
-    1 : {
+    2 : {
        'input' : [
             '|A B C|',
             '  |D|  '
@@ -88,7 +100,7 @@ overlap_evason={
         'reverse':True,
         'evaded':{'offset':1, 'size':1}
     },
-    2 : {
+    3 : {
         'input' : [
             '|A B|',
             '  |C|'
@@ -105,7 +117,7 @@ overlap_evason={
         'reverse':True,
         'evaded':{'offset':1, 'size':1}
     },
-    3 : {
+    4 : {
         'input' : [
             '|A B|  ',
             '  |C D|'
@@ -122,7 +134,7 @@ overlap_evason={
         'reverse':True,
         'evaded':{'offset':1, 'size':1}
     },
-    4 : {
+    5 : {
         'input' : [
             '|A|',
             '|B|'

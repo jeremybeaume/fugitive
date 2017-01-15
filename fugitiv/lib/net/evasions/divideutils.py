@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
+import sys
+
 def compute_frag_size(payload_size, pre_size, post_size,
         evaded_offset, evaded_size, evasion_size,
         sign_begin, sign_end
@@ -40,7 +42,6 @@ def compute_frag_size(payload_size, pre_size, post_size,
     """
 
     evasion_post_size = (evasion_size - evaded_offset - evaded_size)
-    print "evasion_post_size : " + str(evasion_post_size)
     # size needed by the evasion after the evaded area (B area)
 
     #Check there is enough data (consider all fragment size to 8)
@@ -65,14 +66,22 @@ def compute_frag_size(payload_size, pre_size, post_size,
         raise IOError("Can not evade content : too at the end")
 
     # calculate the best begin for the evasion zone (need to evade at leaast one unit of signature)
-    evasion_area_begin = min(
-                max(sign_begin, earliest_evasion_begin), #earliest begin, at worst sign_end (checked before)
-                latest_evasion_end - evaded_size + 1 # actual start
-                )
+    if pre_size != 0 or evaded_offset != 0 :
+        evasion_area_begin = min(
+                    max(sign_begin, earliest_evasion_begin), #earliest begin, at worst sign_end (checked before)
+                    latest_evasion_end - evaded_size + 1 # actual start
+                    )
+    else:
+        #there is no offset or pre_size : evasion start at 0 !
+        evasion_area_begin = 0
 
-    evasion_area_end = max(
-                min(sign_end, latest_evasion_end), #at worst
-                earliest_evasion_begin + evaded_size -1)
+    if post_size != 0 or evasion_post_size != 0:
+        evasion_area_end = max(
+                    min(sign_end, latest_evasion_end), #at worst
+                    earliest_evasion_begin + evaded_size -1)
+    else:
+        # not post fragment, evasions end at the end
+        evasion_area_end = payload_size - 1
 
     #divide the area before the evasion
     pre_fragment_size, pre_evade_frag_size = _divide_area(evasion_area_begin, evaded_offset, pre_size)
@@ -80,10 +89,16 @@ def compute_frag_size(payload_size, pre_size, post_size,
         evasion_post_size, post_size)
     plop,evade_area_frag_sizes = _divide_area(evasion_area_end - evasion_area_begin +1, evaded_size, 0)
 
-    return ([pre_fragment_size] + pre_evade_frag_size
+    result = ([pre_fragment_size] + pre_evade_frag_size
             + evade_area_frag_sizes
             + post_evade_frag_size + [post_fragment_size])
 
+    #debug
+    #_print_division(result, payload_size, pre_size, post_size,
+    #        evaded_offset, evaded_size, evasion_size,
+    #        sign_begin, sign_end)
+
+    return result
     
 def _divide_area(size, number, fixed_size_element):
     """ Divide an area equally between number occupant, with another
@@ -123,17 +138,9 @@ def _divide_area(size, number, fixed_size_element):
 def _module_divide(a,b):
     return (a/b, a % b)
 
-import sys
-
-def _test(payload_size, pre_size, post_size,
+def _print_division(l, payload_size, pre_size, post_size,
         evaded_offset, evaded_size, evasion_size,
         sign_begin, sign_end):
-    l = compute_frag_size(payload_size, pre_size, post_size,
-        evaded_offset, evaded_size, evasion_size,
-        sign_begin, sign_end)
-    print l
-    print
-    
     for i in range(0, payload_size):
         sys.stdout.write("| {} ".format(i))
     print
@@ -162,7 +169,9 @@ def _test(payload_size, pre_size, post_size,
         sys.stdout.write("|   ")
     print
 
-# _test(payload_size=10, pre_size=1, post_size=1,
-#        evaded_offset=1, evaded_size=1, evasion_size=3,
-#        sign_begin=0, sign_end=2)
+
+# compute_frag_size(payload_size=11, pre_size=1, post_size=0,
+#        evaded_offset=0, evaded_size=1, evasion_size=2,
+#        sign_begin=3, sign_end=7
+#        )
 

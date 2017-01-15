@@ -145,6 +145,7 @@ class TCPsocket(PacketReceiver):
 
         # send evaded packets
         for packet in pkt_list:
+            #packet.show2()
             sendp(Ether() / packet, iface=self._iface, verbose=False)
 
     def _wait_ack(self):
@@ -168,25 +169,8 @@ class TCPsocket(PacketReceiver):
         """ Create packet with current seq / ack """
         pkt = IP(src=self._src_ip, dst=self._dst_ip) \
             / TCP(sport=self._src_port, dport=self._dst_port,
-                      seq=self._seq, ack=self._ack)
-        flags = flags.upper()
-        pkt[TCP].flags = 0
-        if "F" in flags:
-            pkt[TCP].flags |= TCPsocket.FIN      
-        if "S" in flags:
-            pkt[TCP].flags |= TCPsocket.SYN
-        if "R" in flags:
-            pkt[TCP].flags |= TCPsocket.RST
-        if "P" in flags:
-            pkt[TCP].flags |= TCPsocket.PSH
-        if "A" in flags:
-            pkt[TCP].flags |= TCPsocket.ACK
-        if "U" in flags:
-            pkt[TCP].flags |= TCPsocket.URG
-        if "E" in flags:
-            pkt[TCP].flags |= TCPsocket.ECE
-        if "C" in flags:
-            pkt[TCP].flags |= TCPsocket.CWR
+                      seq=self._seq, ack=self._ack,
+                      flags = flags.upper())
         return pkt
 
     def packet_for_me(self, pkt):
