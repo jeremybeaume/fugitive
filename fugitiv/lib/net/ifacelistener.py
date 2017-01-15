@@ -35,12 +35,12 @@ class PacketReceiver:
 		self._sniffer.add_receiver(self)
 
 	def recv_packet(self, timeout=None):
-		""" receive a packet during the timeout, returns None if no packet received """
+		""" receive a packet during the timeout
+		raise IOError if timeout """
 		try:
 			return self._pkt_queue.get(block=True, timeout=timeout)
 		except Queue.Empty:
-			raise_warning("Packet receive timeout")
-			return None
+			raise IOError("Packet receive timeout")
 
 	def packet_for_me(self, pkt):
 		"""
