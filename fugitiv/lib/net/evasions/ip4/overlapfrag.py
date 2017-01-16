@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
+import random
 from scapy.all import *
 
 from ..baseevasion import *
@@ -24,10 +25,12 @@ class IP4OverlapFragEvasion(SignatureEvasion):
 
     def evade_signature(self, pkt, sign_begin, sign_size):
         
+        frag_id = random.randint(0, 65535)
+
         def fragment_maker(offset, payload, frag_info):
             fragment = IP( src = pkt[IP].src, dst=pkt[IP].dst,
                 proto=pkt[IP].proto, frag=offset,
-                flags="MF+DF") / Raw(payload)
+                flags="MF+DF", id=frag_id) / Raw(payload)
 
             if frag_info is None:
                 if offset != 0:
