@@ -23,7 +23,7 @@ mf_flag_evasion={
     },
 
     1 : {
-        # C fragment should be ignored
+        # C fragment should be ignored most probably
         'name' : 'Post defrag framgent (A,B,C - B no MF)',
         'input' : [
             '|A-MF|          ',
@@ -47,13 +47,13 @@ mf_flag_evasion={
 
     2 : {
         # C fragment might be used, depends on MF signification
-        'name': 'Middle offset-last arrived no MF (A,C,B - B no MF)'
+        'name': 'Middle offset-last arrived (A,C,B - B no MF)'
         'input' : [
             '|A-MF|          ',
             '          |C-MF|',
             '     |B-  |     ',
         ],
-        'output':['|AB|', '|ABC'],
+        'output':['|AB|', '|ABC|'],
         'frags':[
             #output |AB|
             [{'offset':0, 'content':[1], 'flags':'MF'},
@@ -64,27 +64,24 @@ mf_flag_evasion={
              {'offset':2, 'content':[1], 'flags':'MF'},
              {'offset':1, 'content':[1], 'flags':'  '}]
         ],
-        'evaded':{'offset':1, 'size':1},
+        'evaded':{'offset':2, 'size':1},
         'reverse' : False
     },
 
     3 : {
         # A Fragment appears not fragmented, but ....
-        'name': 'First offset not fragmented ? (C,B,A - A no MF)'
+        'name': 'First offset not fragmented ? (B,A - A no MF)'
         'input' : [
-            '          |C-MF|',
-            '     |B-MF|     ',
-            '|A-  |          '
+            '     |B-MF|',
+            '|A-  |     '
         ],
-        'output':['|A|', '|ABC'],
+        'output':['|A|', '|AB|'],
         'frags':[
             #output |A|
-            [{'offset':2, 'content':[1], 'flags':'MF'},
-             {'offset':1, 'content':[0], 'flags':'MF'},
-             {'offset':0, 'content':[0], 'flags':'  '}],
+            [{'offset':1, 'content':[0], 'flags':'MF'},
+             {'offset':0, 'content':[1], 'flags':'  '}],
             #output |ABC|
-            [{'offset':2, 'content':[1], 'flags':'MF'},
-             {'offset':1, 'content':[1], 'flags':'MF'},
+            [{'offset':1, 'content':[1], 'flags':'MF'},
              {'offset':0, 'content':[1], 'flags':'  '}]
         ],
         'evaded':{'offset':1, 'size':1},
