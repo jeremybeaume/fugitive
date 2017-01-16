@@ -7,3 +7,4 @@ from ip6 import *
 from tcp import *
 
 import common
+import conf

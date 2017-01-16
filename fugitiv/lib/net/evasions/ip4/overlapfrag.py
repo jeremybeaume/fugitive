@@ -5,7 +5,8 @@
 from scapy.all import *
 
 from ..baseevasion import *
-from ..common import *
+from .. import common
+from .. import conf
 
 import fragutils
 
@@ -20,7 +21,7 @@ class IP4OverlapFragEvasion(SignatureEvasion):
         self._outputid = outputid
         self._reverse = reverse
 
-        self._testinfo = overlap_evasion[testid]
+        self._testinfo = conf.overlap_evasion[testid]
 
     def evade_signature(self, pkt, sign_begin, sign_size):
         payload = str(pkt[IP].payload)
@@ -46,7 +47,7 @@ class IP4OverlapFragEvasion(SignatureEvasion):
         # to match signature with evasion capacity
         # take a post_size of 1 : will be the only fragment without MF
         # at the end, so that the evasion only concerns overlaping
-        sizes = compute_frag_size(payload_size = number_offset,
+        sizes = common.compute_frag_size(payload_size = number_offset,
             pre_size = 1, post_size = 1,
             evaded_offset = evaded_offset,
             evaded_size   = evaded_size,

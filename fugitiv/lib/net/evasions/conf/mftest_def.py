@@ -47,7 +47,7 @@ mf_flag_evasion={
 
     2 : {
         # C fragment might be used, depends on MF signification
-        'name': 'Middle offset-last arrived (A,C,B - B no MF)'
+        'name': 'Middle offset-last arrived (A,C,B - B no MF)',
         'input' : [
             '|A-MF|          ',
             '          |C-MF|',
@@ -70,7 +70,7 @@ mf_flag_evasion={
 
     3 : {
         # A Fragment appears not fragmented, but ....
-        'name': 'First offset not fragmented ? (B,A - A no MF)'
+        'name': 'First offset not fragmented ? (B,A - A no MF)',
         'input' : [
             '     |B-MF|',
             '|A-  |     '

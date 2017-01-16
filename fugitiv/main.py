@@ -30,8 +30,8 @@ def test_evasion(test_id, output, reverse):
        
     s.close()
 
-for test_id in lib.net.evasions.common.overlap_evasion.keys():
-    test_info = lib.net.evasions.common.overlap_evasion[test_id]
+for test_id in lib.net.evasions.conf.overlap_evasion.keys():
+    test_info = lib.net.evasions.conf.overlap_evasion[test_id]
     for r in range(0, len(test_info['output'])):
         test_evasion(test_id, r, False)
         if test_info['reverse']:
