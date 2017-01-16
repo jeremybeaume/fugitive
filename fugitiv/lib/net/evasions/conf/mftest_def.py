@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
+"""
+*Evasion exploiting the MF IPv4 Flag*
+
+Does it mean that no more packet are coming ?
+Or does it mean that this fragment in the last in term of offset ?
+
+"""
 mf_flag_evasion={
     0 : {
         # defautl simple case
@@ -87,4 +94,8 @@ mf_flag_evasion={
         'evaded':{'offset':1, 'size':1},
         'reverse' : False
     }
+
+    #TODO : Overlapping fragment with MF flag : EVIIIIL
+    # |A B| (MF)
+    # |C|   (  )
 }
