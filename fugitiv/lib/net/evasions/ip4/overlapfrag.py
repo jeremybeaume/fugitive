@@ -10,7 +10,6 @@ from .. import conf
 
 import fragutils
 
-
 class IP4OverlapFragEvasion(SignatureEvasion):
 
     def __init__(self, signature, testid, outputid, reverse):
@@ -24,48 +23,37 @@ class IP4OverlapFragEvasion(SignatureEvasion):
         self._testinfo = conf.overlap_evasion[testid]
 
     def evade_signature(self, pkt, sign_begin, sign_size):
-        payload = str(pkt[IP].payload)
         
-        # finding the first fragment offset containing the signature :
-        sign_first_offset = int(sign_begin/8)
-        # finding the last one :
-        sign_last_offset = int((sign_begin+sign_size-1)/8)
-        # -1 : we want the last char actual position
+        def fragment_maker(offset, payload, frag_info):
+            fragment = IP( src = pkt[IP].src, dst=pkt[IP].dst,
+                proto=pkt[IP].proto, frag=offset,
+                flags="MF+DF") / Raw(payload)
 
-        last_offset = int((len(payload)-1) /8) #last possible offset value in the packet
-        number_offset = last_offset + 1 #0 is an offset value =)
+            if frag_info is None:
+                if offset != 0:
+                    #last fragment : no MF flag
+                    fragment[IP].flags="DF"
+                else:
+                    #first fragment
+                    #nothing to do
+                    pass
 
-        evaded_offset = self._testinfo['evaded']['offset']
-        evaded_size   = self._testinfo['evaded']['size']
-        # calculate evasion size : the max(offset + size) of all test fragments
-        evasion_size = max([
-                frag['offset'] + len(frag['content'])
-                for frag in self._testinfo['frags'][self._outputid] #get fragments for desired output
-            ])
+            return fragment
 
-        # division of the offset space between the fragment groups
-        # to match signature with evasion capacity
-        # take a post_size of 1 : will be the only fragment without MF
-        # at the end, so that the evasion only concerns overlaping
-        sizes = common.compute_frag_size(payload_size = number_offset,
-            pre_size = 1, post_size = 1,
-            evaded_offset = evaded_offset,
-            evaded_size   = evaded_size,
-            evasion_size  = evasion_size,
-            sign_begin = sign_first_offset,
-            sign_end   = sign_last_offset)
-
-        frag_list = fragutils.fragment_packet(pkt, self._testinfo['frags'][self._outputid], sizes)
-
+        fragment_list = common.fragmentmaker.make_fragment_evasion(
+            payload = str(pkt[IP].payload),
+            fragment_maker  = fragment_maker,
+            frag_infos_list = self._testinfo['frags'][self._outputid],
+            evaded_area     = self._testinfo['evaded'],
+            signature_begin = sign_begin,
+            signature_end   = sign_begin + sign_size - 1,
+            pre_frag_size   = 1, #create fragment at egin and end for better clarity
+            post_frag_size  = 1,
+            offset_coef = 8)
+        
         if self._reverse :
-            l = frag_list[1:-1]
-            l.reverse()
-            rev = [frag_list[0]] + l + [frag_list[-1]]
-            frag_list = rev
+            fragment_list = common.reverse_frag_list(fragment_list, True, True)
 
-        fragutils.print_frag_list(frag_list)
+        fragutils.print_frag_list(fragment_list)
 
-        return frag_list
-
-
-
+        return fragment_list

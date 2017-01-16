@@ -4,8 +4,11 @@
 
 import lib
 
-def test_evasion(test_id, output, reverse):
+def test_evasion(test_id, test_info, output, reverse):
     print
+    print ("[+] " + test_info['name'] + (' - Reversed' if reverse else '')
+            + ' / Output ' + test_info['output'][output])
+
     signature = "abcdefghijklmnopqrstuvwxyz"
 
     frag_evasion = lib.net.evasions.IP4OverlapFragEvasion("efgh", testid=test_id,
@@ -32,8 +35,9 @@ def test_evasion(test_id, output, reverse):
 
 for test_id in lib.net.evasions.conf.overlap_evasion.keys():
     test_info = lib.net.evasions.conf.overlap_evasion[test_id]
+
     for r in range(0, len(test_info['output'])):
-        test_evasion(test_id, r, False)
+        test_evasion(test_id, test_info, r, False)
         if test_info['reverse']:
-            test_evasion(test_id, r, True)
+            test_evasion(test_id, test_info, r, True)
 
