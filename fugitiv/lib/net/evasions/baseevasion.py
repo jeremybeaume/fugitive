@@ -17,7 +17,6 @@ class BaseAbstractEvasion:
         """
         raise NotImplemetedError
 
-
 class SignatureEvasion(BaseAbstractEvasion):
     """
     Evasion that avoid matching a signature based algorithm
@@ -51,6 +50,9 @@ class SignatureEvasion(BaseAbstractEvasion):
             return (p, len(self._signature))
 
     def evade(self, pkt):
+        """
+        search for the signature, and launches evade_signature if found
+        """
         (pos, size) = self._find_signature(pkt)
         if pos>-1 :
             return self.evade_signature(pkt, pos, size)

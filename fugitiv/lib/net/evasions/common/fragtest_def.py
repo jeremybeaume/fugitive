@@ -3,9 +3,8 @@
 # Written by : Jeremy BEAUME
 
 """
-** General Incontentation for IPv4 fragmentation evasions **
+** Common test definitions **
 
-Dict of IPv4 fragmentation tests :
 base : dict(test_id=>test_infos)
 
 test_infos = dict :
@@ -31,7 +30,7 @@ the actual fragment size and offset may be a multiple of thoses values.
 
 
 """
-Specific Infos for overlap_test :
+Specific Infos for overlap :
 
 The overlap test breaks the packet around the signature :
 DATA | SIGNATURE | DATA

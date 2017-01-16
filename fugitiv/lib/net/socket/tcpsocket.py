@@ -3,9 +3,11 @@
 # Written by : Jeremy BEAUME
 
 import random
-from ifacelistener import *
 from scapy.all import *
-from ..utils import *
+
+from ...utils import *
+
+from ifacelistener import *
 import utils
 
 class TCPsocket(PacketReceiver):

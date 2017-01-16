@@ -3,13 +3,12 @@
 # Written by : Jeremy BEAUME
 
 from scapy.all import *
+
 from ..baseevasion import *
-
-from fragtest_def import *
-
-from ..divideutils import *
+from ..common import *
 
 import fragutils
+
 
 class IP4OverlapFragEvasion(SignatureEvasion):
 

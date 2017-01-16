@@ -6,7 +6,8 @@ import scapy.all as scapy
 import Queue
 import threading
 import utils
-from ..utils import *
+
+from ...utils import *
 
 
 def wait_for_packet(iface, condition=None, timeout=None):

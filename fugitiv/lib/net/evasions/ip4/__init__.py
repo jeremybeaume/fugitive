@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-from overlapfrag import *
+from overlapfrag import IP4OverlapFragEvasion
