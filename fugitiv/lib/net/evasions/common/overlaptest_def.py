@@ -3,41 +3,10 @@
 # Written by : Jeremy BEAUME
 
 """
-** Common test definitions **
-
-base : dict(test_id=>test_infos)
-
-test_infos = dict :
-    'input'  : array of string, to be printed vertically, in the list order
-               displays the content of the packets sent
-    'output' : array of string, corresponding to possible outputs defragmentation
-    'frags'  : array of fragements array to be sent, for each output,
-               to get correct defragmentation for the considered output,
-               and junk for the others output
-    'reverse': Do the test with fragment sent in other order
-    'evaded' : {'offset':int, 'size':int} : part of the described evasion that is obfuscated
-
-fragment : dict :
-    'offset' : offset from the begining of signature area
-               (one fragment must at least have offset = 0)
-    'content'   : array of int for content
-               0 means take content of the input packet
-               1 means generate junk for this part
-
-The sizes and offset are an indication :
-the actual fragment size and offset may be a multiple of thoses values.
-"""
-
-
-"""
-Specific Infos for overlap :
+*Overlap evasions definition*
 
 The overlap test breaks the packet around the signature :
 DATA | SIGNATURE | DATA
-
-So there is one fragment with begining test data
-it uses the test incontentation to make overlaping fragment around signature
-the last fragment is dinal data.
 
 IE : the test :
 |A|junk|
@@ -49,7 +18,7 @@ Gives the fragments :
        |  B |C|
               |DATA|
 
-The MF flag is not set on the overlaping fragments
+IPv4 : All fragment have MF flag except the last one (both in offset and time)
 """
 
 overlap_evasion={

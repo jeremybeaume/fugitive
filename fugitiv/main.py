@@ -28,7 +28,6 @@ def test_evasion(test_id, output, reverse):
     else:
         lib.utils.raise_error("FAIL")
        
-
     s.close()
 
 for test_id in lib.net.evasions.common.overlap_evasion.keys():

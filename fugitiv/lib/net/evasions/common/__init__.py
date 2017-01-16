@@ -3,5 +3,5 @@
 # Written by : Jeremy BEAUME
 
 from divideutils  import *
-from fragtest_def import *
+from overlaptest_def import *
 
