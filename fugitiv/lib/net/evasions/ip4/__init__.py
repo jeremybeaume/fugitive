@@ -3,3 +3,4 @@
 # Written by : Jeremy BEAUME
 
 from overlapfrag import IP4OverlapFragEvasion
+from mfflag import IP4MFFlagEvasion
