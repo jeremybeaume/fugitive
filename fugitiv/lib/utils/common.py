@@ -22,29 +22,37 @@ class colors:
     CYAN = '\033[96m'
 
 
-def raise_success(msg):
+def print_success(msg):
     print colors.GREEN + str(msg) + colors.DEFAULT
     sys.stdout.flush()
 
 
-def raise_info(msg, verbose=1):
+def print_info(msg, verbose=1):
     print colors.DEFAULT + str(msg) + colors.DEFAULT
     sys.stdout.flush()
 
 
-def raise_warning(msg):
+def print_warning(msg):
     print colors.YELLOW + str(msg) + colors.DEFAULT
     sys.stdout.flush()
 
 
-def raise_error(msg):
+def print_error(msg):
     print colors.RED + str(msg) + colors.DEFAULT
     sys.stdout.flush()
 
 
-def raise_notice(msg):
+def print_notice(msg):
     print colors.CYAN + str(msg) + colors.DEFAULT
     sys.stdout.flush()
+
+
+def print_title(msg):
+    print colors.CYAN + colors.BOLD + "== " + msg + " ==" + colors.DEFAULT
+
+
+def print_item(msg):
+    print colors.BLUE + "[+] " + msg + colors.DEFAULT
 
 
 def exit(code=1):

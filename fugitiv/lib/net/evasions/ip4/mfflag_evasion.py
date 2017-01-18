@@ -5,24 +5,20 @@
 import random
 from scapy.all import *
 
-from ..baseevasion import *
+from ..baseevasion     import SignatureEvasion
+from ..testinfoevasion import TestInfoBasedEvasion
 from .. import common
 from .. import conf
 
 import fragutils
 
 
-class IP4MFFlagEvasion(SignatureEvasion):
+class IP4MFFlagEvasion(TestInfoBasedEvasion, SignatureEvasion):
 
-    def __init__(self, signature, testid, outputid, reverse):
+    def __init__(self, testid, outputid, reverse, signature=None):
         # Init a signature Evasion on IP layer
-        SignatureEvasion.__init__(self, signature, IP)
-
-        self._testid = testid
-        self._outputid = outputid
-        self._reverse = reverse
-
-        self._testinfo = conf.mf_flag_evasion[testid]
+        SignatureEvasion.__init__(self, IP, signature)
+        TestInfoBasedEvasion.__init__(self, conf.mf_flag_evasion, testid, outputid, reverse)
 
     def evade_signature(self, pkt, sign_begin, sign_size):
 
@@ -43,8 +39,8 @@ class IP4MFFlagEvasion(SignatureEvasion):
         fragment_list = common.fragmentmaker.make_fragment_evasion(
             payload=str(pkt[IP].payload),
             fragment_maker=fragment_maker,
-            frag_infos_list=self._testinfo['frags'][self._outputid],
-            evaded_area=self._testinfo['evaded'],
+            frag_infos_list=self._test_info['frags'][self._outputid],
+            evaded_area=self._test_info['evaded'],
             signature_begin=sign_begin,
             signature_end=sign_begin + sign_size - 1,
             pre_frag_size=0,  # create fragment at egin and end for better clarity
@@ -52,8 +48,18 @@ class IP4MFFlagEvasion(SignatureEvasion):
             offset_coef=8)
 
         if self._reverse:
-            fragment_list = common.reverse_frag_list(fragment_list, True, True)
+            fragment_list = common.reverse_frag_list(
+                fragment_list, False, False)
 
         fragutils.print_frag_list(fragment_list)
 
         return fragment_list
+
+    @staticmethod
+    def evasion_list(signature):
+        input_list = TestInfoBasedEvasion.get_all_tests(conf.mf_flag_evasion)
+        evasion_list = []
+        for t in input_list:
+            evasion_list.append(IP4MFFlagEvasion(testid=t[0], outputid=t[1],
+                    reverse=t[2], signature=signature))
+        return evasion_list

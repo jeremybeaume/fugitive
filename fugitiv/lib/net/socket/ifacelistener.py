@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-import scapy.all as scapy 
+import scapy.all as scapy
 import Queue
 import threading
 import utils
@@ -57,7 +57,7 @@ class PacketReceiver:
 				self._pkt_queue.put(pkt, block=False)
 			except Queue.Full:
 				# Drop packet
-				raise_warning("Packet dropped : queue is full")
+				print_warning("Packet dropped : queue is full")
 
 	def close(self):
 		""" Closes this receiver ( will not receive packet anymore) """
@@ -129,6 +129,6 @@ class _IfaceSniffer:
 
 def _IfaceSniffer_thread(sniffer):
 	""" Thread de sniff scapy """
-	raise_notice("Start sniffing on "+ sniffer._iface)
+	#print_notice("Start sniffing on "+ sniffer._iface)
 	scapy.sniff(iface=sniffer._iface, prn=lambda pkt: sniffer.handle_packet(pkt))
 

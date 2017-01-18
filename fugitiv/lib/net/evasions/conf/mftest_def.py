@@ -37,7 +37,7 @@ mf_flag_evasion = {
             '     |B-  |     ',
             '          |C-MF|'
         ],
-        'output': ['|AB|', '|ABC'],
+        'output': ['|AB|', '|ABC|'],
         'frags': [
             # output |AB|
             [{'offset': 0, 'content': [1], 'flags':'MF'},
@@ -84,7 +84,7 @@ mf_flag_evasion = {
         ],
         'output': ['|A|', '|AB|'],
         'frags': [
-            # output |A|
+            # output |A| #FIXEME : Protégé par le header TCP et content_length
             [{'offset': 1, 'content': [0], 'flags':'MF'},
              {'offset': 0, 'content': [1], 'flags':None}],
             # output |ABC|

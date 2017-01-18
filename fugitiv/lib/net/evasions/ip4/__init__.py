@@ -2,5 +2,5 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-from overlapfrag import IP4OverlapFragEvasion
-from mfflag import IP4MFFlagEvasion
+from overlap_evasion import IP4OverlapFragEvasion
+from mfflag_evasion import IP4MFFlagEvasion

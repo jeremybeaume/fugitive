@@ -63,7 +63,7 @@ def make_fragment_evasion(
         # some offset at the end takes no payload data : This is an injection evasion
         # The real payload is for example 2 groups long
         # But some equipment might takes in account a third group
-        utils.raise_notice("This is it")
+        utils.print_notice("This is it")
         if post_frag_size > 0:
             # no idea what it means : we are injectinf data at the end here ...
             raise ValueError(

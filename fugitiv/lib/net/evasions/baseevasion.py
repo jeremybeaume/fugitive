@@ -4,6 +4,7 @@
 
 from scapy.all import *
 
+
 class BaseAbstractEvasion:
     """ Base Class for all evasion technics """
 
@@ -17,16 +18,23 @@ class BaseAbstractEvasion:
         """
         raise NotImplemetedError
 
+    def get_name(Self):
+        return "BaseAbstractEvasion"
+
+
 class SignatureEvasion(BaseAbstractEvasion):
     """
     Evasion that avoid matching a signature based algorithm
     """
 
-    def __init__(self, signature, layer):
+    def __init__(self, layer, signature=None):
         """ Will search for a signature in the layer payload """
         BaseAbstractEvasion.__init__(self)
         self._signature = signature
         self._layer = layer
+
+    def set_signature(self, signature):
+        self._signature = signature
 
     def _find_signature(self, pkt):
         """
@@ -38,15 +46,15 @@ class SignatureEvasion(BaseAbstractEvasion):
             if pkt.haslayer(self._layer):
                 data = str(pkt[self._layer].payload)
             else:
-                return (-1,-1) # the pakcet has not the interrested layer
+                return (-1, -1)  # the pakcet has not the interrested layer
         else:
             data = str(pkt)
 
-        #search the signature
+        # search the signature
         p = data.find(self._signature)
-        if p<0 :
-            return (-1,-1)
-        else :
+        if p < 0:
+            return (-1, -1)
+        else:
             return (p, len(self._signature))
 
     def evade(self, pkt):
@@ -54,11 +62,10 @@ class SignatureEvasion(BaseAbstractEvasion):
         search for the signature, and launches evade_signature if found
         """
         (pos, size) = self._find_signature(pkt)
-        if pos>-1 :
+        if pos > -1:
             return self.evade_signature(pkt, pos, size)
         else:
-            return [pkt] #no evasion needed
-
+            return [pkt]  # no evasion needed
 
     def evade_signature(self, pkt, sign_begin, sign_size):
         """ Evade the signature, starting in layer payload at begin and finishing at end """

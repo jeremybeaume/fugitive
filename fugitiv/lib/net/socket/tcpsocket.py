@@ -10,12 +10,13 @@ from ...utils import *
 from ifacelistener import *
 import utils
 
+
 class TCPsocket(PacketReceiver):
 
     SOCKET_TIMEOUT = 3
 
-    INIT,SYN_SENT,SYN_RECVD,ESTABLISHED = range(4)
-    _state_str=["INIT","SYN_SENT","SYN_RECVD","ESTABLISHED"]
+    INIT, SYN_SENT, SYN_RECVD, ESTABLISHED = range(4)
+    _state_str = ["INIT", "SYN_SENT", "SYN_RECVD", "ESTABLISHED"]
 
     FIN = 0x01
     SYN = 0x02
@@ -29,29 +30,30 @@ class TCPsocket(PacketReceiver):
     def __init__(self, iface, target, port, evasion=None):
         PacketReceiver.__init__(self, iface)
         self._iface = iface
-        self._evasion = evasion;
+        self._evasion = evasion
 
-        self._dst_ip   = target
+        self._dst_ip = target
         self._dst_port = port
-        self._src_ip   = "0.0.0.0"
+        self._src_ip = "0.0.0.0"
         self._src_port = 0
 
         self._seq = 0
         self._ack = 0
 
         self._state = TCPsocket.INIT
+        self._synchronized = False
 
     def connect(self):
         """
         Connect this socket
         """
-        self._src_ip   = utils.get_iface_ip4(self._iface)
+        self._src_ip = utils.get_iface_ip4(self._iface)
         self._src_port = utils.get_source_port()
 
-        self._seq = random.randint(0,65536)
+        self._seq = random.randint(0, 65536)
         self._ack = 0
 
-        ## SYN
+        # SYN
         syn_pkt = self._make_pkt(flags="S")
         self._send_pkt(syn_pkt)
 
@@ -62,13 +64,13 @@ class TCPsocket(PacketReceiver):
         syn_ack = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
 
         # Check connection RST
-        if (syn_ack[TCP].flags & TCPsocket.RST) :
+        if (syn_ack[TCP].flags & TCPsocket.RST):
             raise self._get_IOError("Connection RESET")
         # Check SYN ACK
-        elif ( (syn_ack[TCP].flags & TCPsocket.SYN) == 0
-            or (syn_ack[TCP].flags & TCPsocket.ACK) == 0) :
+        elif ((syn_ack[TCP].flags & TCPsocket.SYN) == 0
+              or (syn_ack[TCP].flags & TCPsocket.ACK) == 0):
             raise self._get_IOError("Connection received not a SYN ACK packet")
-    
+
         # SYN_ACK received
 
         # Send ACK
@@ -79,17 +81,20 @@ class TCPsocket(PacketReceiver):
 
         # State ESTABLISHED
         self._state = TCPsocket.ESTABLISHED
+        self._synchronized = True
 
     def write(self, data):
         pkt = self._make_pkt(flags="PA") / Raw(data)
         self._send_pkt(pkt)
 
+        self._wait_ack(expected_seq=self._ack,
+                       expected_ack=self._seq + len(data))
+        # augment seq only if ack is received : _wait_ack raise exception when
+        # error is met
         self._seq += len(data)
-        
-        self._wait_ack()
 
     def read(self, timeout=None):
-        try :
+        try:
             ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
         except IOError:
             raise self._get_IOError("Read timeout")
@@ -104,28 +109,34 @@ class TCPsocket(PacketReceiver):
         ack_pkt = self._make_pkt(flags="A")
         self._send_pkt(ack_pkt)
 
-        return data;
+        return data
 
     def close(self):
         # send FIN_ACK packet
+        if not self._synchronized and self._state != TCPsocket.INIT:
+            self.reset()
+            return
+
         fa_pkt = self._make_pkt(flags="FA")
         self._send_pkt(fa_pkt)
         self._seq += 1
 
-        #wait for FIN_ACK answer
+        # wait for FIN_ACK answer
         remote_fa_pkt = None
         while 1:
             try:
-                remote_fa_pkt = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+                remote_fa_pkt = self.recv_packet(
+                    timeout=TCPsocket.SOCKET_TIMEOUT)
             except IOError:
                 # timeout de reception, we just leave
-                raise_warning("FIN timeout with {}:{} on {}".format(self._dst_ip, self._dst_port,self._iface))
+                print_warning("FIN timeout with {}:{} on {}".format(
+                    self._dst_ip, self._dst_port, self._iface))
                 break
             if remote_fa_pkt[TCP].flags & TCPsocket.FIN:
                 # break after FIN Received
                 break
             # while will end : either by fin ack, or timeout
-            #FIXME security : will never end if always receive ack pakets
+            # FIXME security : will never end if always receive ack pakets
 
         if remote_fa_pkt is not None:
             # send final ack packet
@@ -135,6 +146,10 @@ class TCPsocket(PacketReceiver):
 
         # remove this socket from listening ones
         PacketReceiver.close(self)
+
+    def reset(self):
+        pkt = self._make_pkt(flags="RA")
+        sendp(Ether() / pkt, iface=self._iface, verbose=False)
 
     #### UTILS ####
 
@@ -147,47 +162,51 @@ class TCPsocket(PacketReceiver):
 
         # send evaded packets
         for packet in pkt_list:
-            #packet.show2()
+            # packet.show2()
             sendp(Ether() / packet, iface=self._iface, verbose=False)
 
-    def _wait_ack(self):
+    def _wait_ack(self, expected_seq, expected_ack):
         """ Wait for an ACK packet, and check synchronization """
-        try :
+        self._synchronized = False
+
+        try:
             ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
         except IOError:
-            raise self._get_IOError("Disconnected : No answer from remote host")
+            raise self._get_IOError("Disconnected : No ACK from remote host")
 
-        if (ans[TCP].flags & TCPsocket.RST ) != 0 :
+        if (ans[TCP].flags & TCPsocket.RST) != 0:
             raise self._get_IOError("Disconnected : RST from remote host")
 
-        if ans[TCP].seq != self._ack :
-            raise self._get_IOError("Synchronize error : ack={} when remote host seq={}".format(self._ack, ans[TCP].seq))
-        elif ans[TCP].ack != self._seq:
-            raise self._get_IOError("Synchronize error : seq={} when remote host ack={}".format(self._seq, ans[TCP].ack))
+        if ans[TCP].seq != expected_seq:
+            raise self._get_IOError(
+                "Synchronize error : ack={} when remote host seq={}".format(self._ack, ans[TCP].seq))
+        elif ans[TCP].ack != expected_ack:
+            raise self._get_IOError(
+                "Synchronize error : seq={} when remote host ack={}".format(self._seq, ans[TCP].ack))
 
-        return True
+        self._synchronized = True
 
     def _make_pkt(self, flags="A"):
         """ Create packet with current seq / ack """
         pkt = IP(src=self._src_ip, dst=self._dst_ip) \
             / TCP(sport=self._src_port, dport=self._dst_port,
-                      seq=self._seq, ack=self._ack,
-                      flags = flags.upper())
+                  seq=self._seq, ack=self._ack,
+                  flags=flags.upper())
         return pkt
 
     def packet_for_me(self, pkt):
         """ Return True if packet is destined to this socket """
         if pkt.haslayer(IP) and pkt.haslayer(TCP):
-            return ( (pkt[IP].src == self._dst_ip)
-                 and (pkt[IP].dst == self._src_ip)
-                 and (pkt[TCP].sport == self._dst_port)
-                 and (pkt[TCP].dport == self._src_port) )
+            return ((pkt[IP].src == self._dst_ip)
+                    and (pkt[IP].dst == self._src_ip)
+                    and (pkt[TCP].sport == self._dst_port)
+                    and (pkt[TCP].dport == self._src_port))
         else:
             return False
 
     def _get_IOError(self, msg):
         """ Create a formated Error """
-        return IOError(msg + " with {}:{} on {}".format(self._dst_ip, self._dst_port,self._iface))
+        return IOError(msg + " with {}:{} on {}".format(self._dst_ip, self._dst_port, self._iface))
 
     def __str__(self):
         s = "TCPConn[{}/{}:{}=>{}:{},{},seq={},ack={}]".format(
@@ -196,7 +215,4 @@ class TCPsocket(PacketReceiver):
             self._dst_ip, self._dst_port,
             _state_str[self._state],
             self._seq, self._ack,
-            )
-
-
-
+        )
