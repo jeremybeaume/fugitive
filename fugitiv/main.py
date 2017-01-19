@@ -4,9 +4,4 @@
 
 import lib
 
-for evasion in lib.net.evasions.IP4OverlapFragEvasion.evasion_list(None):
-    lib.test.test_http_evasion(evasion)
-
-
-for evasion in lib.net.evasions.IP4MFFlagEvasion.evasion_list(None):
-    lib.test.test_http_evasion(evasion)
+lib.utils.pp.pprint(lib.net.evasions.evasion_tree)

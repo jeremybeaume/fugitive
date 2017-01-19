@@ -77,7 +77,7 @@ mf_flag_evasion = {
 
     3: {
         # A Fragment appears not fragmented, but ....
-        'name': 'First offset not fragmented ? (B,A - A no MF)',
+        'name': 'First offset appears not fragmented (B,A - A no MF)',
         'input': [
             '     |B-MF|',
             '|A-  |     '

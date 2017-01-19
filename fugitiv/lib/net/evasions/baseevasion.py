@@ -5,38 +5,19 @@
 from scapy.all import *
 
 
-class BaseAbstractEvasion:
-    """ Base Class for all evasion technics """
-
-    def __init__(self):
-        pass
-
-    def evade(self, pkt):
-        """
-        Apply the evasion technic
-        Takes a packet, and returns a packet list
-        """
-        raise NotImplemetedError
-
-    def get_name(Self):
-        return "BaseAbstractEvasion"
-
-
-class SignatureEvasion(BaseAbstractEvasion):
+class BaseEvasion:
     """
     Evasion that avoid matching a signature based algorithm
     """
 
     def __init__(self, layer, signature=None):
         """ Will search for a signature in the layer payload """
-        BaseAbstractEvasion.__init__(self)
-        self._signature = signature
+        self.signature = signature
         self._layer = layer
 
-    def set_signature(self, signature):
-        self._signature = signature
-
     def _find_signature(self, pkt):
+        if signature is None:
+            return (-1, -1)
         """
         Search the signature in the layer payload content
         return (pos, len) of the matched content, (-1,-1) if not found
@@ -62,7 +43,7 @@ class SignatureEvasion(BaseAbstractEvasion):
         search for the signature, and launches evade_signature if found
         """
         (pos, size) = self._find_signature(pkt)
-        if pos > -1:
+        if pos > -1 or self.signature is None:
             return self.evade_signature(pkt, pos, size)
         else:
             return [pkt]  # no evasion needed

@@ -4,8 +4,14 @@
 
 import baseevasion
 
-class TestInfoBasedEvasion:
-    def __init__(self, test_info_dict, testid, outputid, reverse):
+
+class TestInfoBasedEvasion(baseevasion.BaseEvasion):
+    """
+    Evasion using a test information dict
+    """
+
+    def __init__(self, layer, test_info_dict, testid, outputid, reverse, signature=None):
+        baseevasion.BaseEvasion.__init__(self, layer, signature)
         self._testid = testid
         self._outputid = outputid
         self._reverse = reverse
@@ -14,11 +20,11 @@ class TestInfoBasedEvasion:
 
     def get_name(self):
         return (str(self._testid) + " - " + self._test_info['name'] + (' - Reversed' if self._reverse else '')
-                    + ' / Output ' + self._test_info['output'][self._outputid])
+                + ' / Output ' + self._test_info['output'][self._outputid])
 
     @staticmethod
     def get_all_tests(test_info_dict):
-        test_list=[]
+        test_list = []
         for test_id in test_info_dict.keys():
             test_info = test_info_dict[test_id]
 
@@ -27,3 +33,12 @@ class TestInfoBasedEvasion:
                 if test_info['reverse']:
                     test_list.append((test_id, outputid, True))
         return test_list
+
+    @staticmethod
+    def generate_evasion_list(test_info_dict, class_object):
+        evasion_list = class_object.evasion_list
+
+        input_list = TestInfoBasedEvasion.get_all_tests(test_info_dict)
+        for t in input_list:
+            evasion_list.append(class_object(testid=t[0], outputid=t[1],
+                                             reverse=t[2], signature=None))

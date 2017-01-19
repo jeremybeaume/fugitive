@@ -5,7 +5,6 @@
 import random
 from scapy.all import *
 
-from ..baseevasion     import SignatureEvasion
 from ..testinfoevasion import TestInfoBasedEvasion
 from .. import common
 from .. import conf
@@ -13,12 +12,15 @@ from .. import conf
 import fragutils
 
 
-class IP4MFFlagEvasion(TestInfoBasedEvasion, SignatureEvasion):
+class IP4MFFlagEvasion(TestInfoBasedEvasion):
+
+    evasion_folder = "IPv4/Fragmentation/MF-Flag"
+    evasion_list = []
 
     def __init__(self, testid, outputid, reverse, signature=None):
         # Init a signature Evasion on IP layer
-        SignatureEvasion.__init__(self, IP, signature)
-        TestInfoBasedEvasion.__init__(self, conf.mf_flag_evasion, testid, outputid, reverse)
+        TestInfoBasedEvasion.__init__(
+            self, IP, conf.mf_flag_evasion, testid, outputid, reverse, signature=signature)
 
     def evade_signature(self, pkt, sign_begin, sign_size):
 
@@ -55,11 +57,5 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion, SignatureEvasion):
 
         return fragment_list
 
-    @staticmethod
-    def evasion_list(signature):
-        input_list = TestInfoBasedEvasion.get_all_tests(conf.mf_flag_evasion)
-        evasion_list = []
-        for t in input_list:
-            evasion_list.append(IP4MFFlagEvasion(testid=t[0], outputid=t[1],
-                    reverse=t[2], signature=signature))
-        return evasion_list
+TestInfoBasedEvasion.generate_evasion_list(
+    conf.mf_flag_evasion, IP4MFFlagEvasion)

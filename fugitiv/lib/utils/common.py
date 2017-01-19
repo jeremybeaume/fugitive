@@ -6,6 +6,9 @@ import sys
 import time
 import string
 import math
+import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 
 class colors:

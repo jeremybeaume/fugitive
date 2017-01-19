@@ -5,7 +5,6 @@
 import random
 from scapy.all import *
 
-from ..baseevasion     import SignatureEvasion
 from ..testinfoevasion import TestInfoBasedEvasion
 from .. import common
 from .. import conf
@@ -13,12 +12,15 @@ from .. import conf
 import fragutils
 
 
-class IP4OverlapFragEvasion(TestInfoBasedEvasion, SignatureEvasion):
+class IP4OverlapFragEvasion(TestInfoBasedEvasion):
+
+    evasion_folder = "IPv4/Fragmentation/Overlap"
+    evasion_list = []
 
     def __init__(self, testid, outputid, reverse, signature=None):
         # Init a signature Evasion on IP layer
-        TestInfoBasedEvasion.__init__(self, conf.overlap_evasion, testid, outputid, reverse)
-        SignatureEvasion.__init__(self, IP, signature)
+        TestInfoBasedEvasion.__init__(
+            self, IP, conf.overlap_evasion, testid, outputid, reverse, signature=signature)
 
     def evade_signature(self, pkt, sign_begin, sign_size):
 
@@ -58,12 +60,5 @@ class IP4OverlapFragEvasion(TestInfoBasedEvasion, SignatureEvasion):
 
         return fragment_list
 
-    @staticmethod
-    def evasion_list(signature):
-        input_list = TestInfoBasedEvasion.get_all_tests(conf.overlap_evasion)
-        evasion_list = []
-        for t in input_list:
-            evasion_list.append(IP4OverlapFragEvasion(testid=t[0], outputid=t[1],
-                    reverse=t[2], signature=signature))
-        return evasion_list
-
+TestInfoBasedEvasion.generate_evasion_list(
+    conf.overlap_evasion, IP4OverlapFragEvasion)
