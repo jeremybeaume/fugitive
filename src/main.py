@@ -11,18 +11,27 @@ verbose = 0
 if not fugitiv.test.http_evasion_tester.check_test():
     sys.exit()
 
-logger = fugitiv.utils.testlogger.TestLogger(
-    folder=None, name=None, verbose=verbose)
 
+def launch_test(evasion, current_folder):
 
-def launch_test(evasion, indent):
-    sys.stdout.write(" " * (4 * indent) +
+    log_folder = "./" + "/".join(current_folder)
+    name = evasion.get_id()
+
+    logger = fugitiv.utils.testlogger.TestLogger(
+        folder=log_folder, name=name, verbose=verbose)
+
+    sys.stdout.write(" " * (4 * len(current_folder)) +
                      "[" + evasion.get_id() + "] " + evasion.get_name() + "  ")
     res, msg = fugitiv.test.http_evasion_tester.test(evasion, logger)
+
+    logger.close() # DO NOT FORGET !!
+
     if res:
         fugitiv.utils.print_success("SUCCESS")
+        return True
     else:
         fugitiv.utils.print_error("FAIL : " + msg)
+        return False
 
 
 def test_all_evasion(evasion_tree, current_folder=[]):
@@ -33,7 +42,7 @@ def test_all_evasion(evasion_tree, current_folder=[]):
     evasion_keys = [x for x in keys_list if x not in folder_keys]
 
     for key in evasion_keys:
-        launch_test(evasion_tree[key], len(current_folder))
+        launch_test(evasion_tree[key], current_folder)
 
     for key in folder_keys:
         print(" " * (4 * len(current_folder)) + "[+] " + str(key))
