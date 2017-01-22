@@ -5,20 +5,23 @@
 from .. import net
 from .. import utils
 
-interface = "eth2"
-target = "10.0.12.2"
-
-check_payload = "GET /?data=check HTTP/1.1\r\nHost:" + target + "\r\n\r\n"
-
 signature = "abcdefghijklmnopqrstuvwxyz"
-attack_payload = ("GET /?data=" + signature + "   HTTP/1.1\r\n"
-                  + "Host:" + target + "\r\n\r\n")
 
 
-def check_test():
+def attack_payload(target):
+    return ("GET /?data=" + signature + "   HTTP/1.1\r\n"
+            + "Host:" + target + "\r\n\r\n")
+
+
+def check_test(target, port):
+
+    check_payload = "GET /?data=check HTTP/1.1\r\nHost:" + target + "\r\n\r\n"
+
+    interface = net.socket.sockutils.get_iface_to_target(target)
 
     print "[?] Check connection"
-    s = net.TCPsocket(interface, target, 80, evasion=None)
+    print "Output interface for {} is {}".format(target, interface)
+    s = net.TCPsocket(target, port, evasion=None)
     try:
         s.connect()
         s.write(check_payload)
@@ -26,13 +29,15 @@ def check_test():
         utils.print_success("CONNECTION OK")
     except IOError as e:
         utils.print_error(str(e))
+        utils.print_error(
+            "You may want to run : iptables -A OUTPUT -p tcp --tcp-flags RST RST -o {} -j DROP".format(interface))
         return False
 
     print "[?] Check detection"
-    s = net.TCPsocket(interface, target, 80, evasion=None)
+    s = net.TCPsocket(target, 80, evasion=None)
     try:
         s.connect()
-        s.write(attack_payload)
+        s.write(attack_payload(target))
         s.close()
         utils.print_error("DETECTION FAILED")
         return False
@@ -42,23 +47,25 @@ def check_test():
     return True
 
 
-def test(evasion, testlogger):
+def test(target, port, evasion, testlogger):
 
     if evasion is not None:
         evasion.signature = signature
 
     ret = (True,)
 
-    s = net.TCPsocket(iface=interface,
-                      target=target, port=80,
+    s = net.TCPsocket(target=target, port=port,
                       evasion=evasion,
                       logger=testlogger)
 
     try:
         s.connect()
-
-        s.write(attack_payload)
+        payload = attack_payload(target)
+        testlogger.println("Writing payload :\n{}\n".format(payload),
+                           verbose=5)
+        s.write(payload)
         rep = s.read()
+        testlogger.println("Answer from server :\n{}\n".format(rep), verbose=5)
 
         # print rep
         if "SUCCESS" in rep:

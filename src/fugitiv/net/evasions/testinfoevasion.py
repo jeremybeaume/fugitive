@@ -18,8 +18,10 @@ class TestInfoBasedEvasion(baseevasion.BaseEvasion):
 
         self._test_info = test_info_dict[testid]
 
-        name = (str(self._testid) + " - " + self._test_info['name'] + (' - Reversed' if self._reverse else '')
-                + ' / Output ' + self._test_info['output'][self._outputid])
+        name = (str(self._testid) + " - " + self._test_info['name']
+                + ' / Output ' + self._test_info['output'][self._outputid]
+                + (' - Reversed' if self._reverse else ''))
+
         evasionid = (str(testid) + "." + str(outputid) +
                      "." + str(int(reverse)))
 
@@ -46,3 +48,23 @@ class TestInfoBasedEvasion(baseevasion.BaseEvasion):
         for t in input_list:
             evasion_list.append(class_object(testid=t[0], outputid=t[1],
                                              reverse=t[2], signature=None))
+
+    def get_description(self):
+        res = ""
+
+        desc = self._test_info.get('description', None)
+        if desc is None:
+            desc = ""
+        if desc != "":
+            res += desc + "\n\n"
+
+        # print input schema
+        input = self._test_info['input']
+        if self._reverse:
+            input.reverse()
+        res += "input : " + input[0] + "\n"
+        for i in range(1, len(input)):
+            res += "        " + input[i] + "\n"
+        res += "output: " + self._test_info['output'][self._outputid] + "\n"
+
+        return res

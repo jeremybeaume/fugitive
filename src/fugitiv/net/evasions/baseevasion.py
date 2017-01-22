@@ -59,3 +59,6 @@ class BaseEvasion:
 
     def get_id(self):
         return self._evasionid
+
+    def get_description(self):
+        return "Please overwrite get_description(self)"

@@ -7,6 +7,13 @@ evasion_tree = {}
 NODE = dict{name:(NODE|evasion)}
 """
 
+"""
+To make an evasion :
+herit from baseevasion.BaseEvasion
+have 2 static attributes :
+    - evasion_folder = str
+    - evasion_list   = list[evasions]
+"""
 
 def _list_evasion_modules():
     """

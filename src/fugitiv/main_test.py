@@ -6,13 +6,11 @@ import sys
 
 import utils
 
-#  iptables - A OUTPUT - p tcp - -tcp - flags RST RST - s 10.0.10.1 - j DROP
 
-
-def run_tests(evasion_tree, tester, outputfolder, verbose, do_check, check_only):
+def run_tests(target, port, evasion_tree, tester, outputfolder, verbose, do_check, check_only):
 
     if do_check:
-        if not tester.check_test():
+        if not tester.check_test(target, port):
             sys.exit()
         print
 
@@ -20,7 +18,9 @@ def run_tests(evasion_tree, tester, outputfolder, verbose, do_check, check_only)
         params = {
             'verbose': verbose,
             'outputfolder': outputfolder,
-            'tester': tester
+            'tester': tester,
+            'target': target,
+            'port': port
         }
         utils.evasionutils.walk_evasion_tree(
             evasion_tree, [], action=test_walker_action, params=params, print_title=True)
@@ -35,6 +35,8 @@ def test_walker_action(evasion, current_folder, params):
     outputfolder = params['outputfolder']
     verbose = params['verbose']
     tester = params['tester']
+    target = params['target']
+    port = params['port']
 
     if outputfolder is not None:
         log_folder = outputfolder + "/" + "/".join(current_folder)
@@ -51,7 +53,11 @@ def test_walker_action(evasion, current_folder, params):
     if verbose > 0:
         print  # ensure that log output on std out will be on new line
 
-    res, msg = tester.test(evasion, logger)
+    logger.println(evasion.get_name(), verbose=5)
+    logger.println(evasion.get_description(), verbose=5)
+    logger.println("===================================", verbose=5)
+
+    res, msg = tester.test(target, port, evasion, logger)
 
     logger.close()  # DO NOT FORGET !!
 

@@ -53,8 +53,8 @@ mf_flag_evasion = {
     },
 
     2: {
-        # C fragment might be used, depends on MF signification
         'name': 'Middle offset-last arrived (A,C,B - B no MF)',
+        'description': 'Some implementation may use all fragments, others may use fragment until no MF flag',
         'input': [
             '|A-MF|          ',
             '          |C-MF|',
@@ -76,8 +76,8 @@ mf_flag_evasion = {
     },
 
     3: {
-        # A Fragment appears not fragmented, but ....
         'name': 'First offset appears not fragmented (B,A - A no MF)',
+        'description': 'Checks if a shorcut is made for packet appearing non fragmented',
         'input': [
             '     |B-MF|',
             '|A-  |     '
@@ -96,8 +96,8 @@ mf_flag_evasion = {
     },
 
     4: {
-        # C fragment might be used, depends on MF signification
         'name': 'Double no-MF (A,C,B - C,B no MF)',
+        'description': 'Which no mf flag counts ? the last in offset order ? the last received ?',
         'input': [
             '|A-MF|          ',
             '          |C-  |',

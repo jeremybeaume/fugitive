@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
+# remove scapy warninng
+import logging
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+
 import os
 import sys
 import argparse
@@ -45,8 +49,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print repr(args)
-
     # parse evasions options
 
     # option e : get evasion list
@@ -66,7 +68,20 @@ if __name__ == "__main__":
         fugitiv.utils.evasionutils.print_evasion_tree(evasion_tree)
         sys.exit(1)
 
+    if args.t is None:
+        print "Error : target required to run test (use -t TARGET:PORT)"
+        sys.exit(1)
+    else:
+        try:
+            target, port = fugitiv.net.socket.sockutils.parse_target_port(
+                args.t)
+        except Exception as e:
+            print str(e)
+            sys.exit(1)
+
     fugitiv.main_test.run_tests(
+        target=target,
+        port=port,
         evasion_tree=evasion_tree,
         tester=fugitiv.test.http_evasion_tester,
         outputfolder=args.o,

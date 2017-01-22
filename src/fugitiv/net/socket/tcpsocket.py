@@ -26,11 +26,16 @@ class TCPsocket(PacketReceiver):
     ECE = 0x40
     CWR = 0x80
 
-    def __init__(self, iface, target, port, evasion=None,
-                 logger=utils.testlogger.none_logger):
+    def __init__(self, target, port, evasion=None,
+                 logger=utils.testlogger.none_logger,
+                 iface=None):
 
-        PacketReceiver.__init__(self, iface)
         self._iface = iface
+        if self._iface is None:
+            self._iface = sockutils.get_iface_to_target(target)
+
+        PacketReceiver.__init__(self, self._iface) # init the receiver on socket interface
+
         self._evasion = evasion
 
         self._dst_ip = target
