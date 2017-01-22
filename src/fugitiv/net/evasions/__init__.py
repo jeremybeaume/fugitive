@@ -28,7 +28,6 @@ def _list_evasion_modules():
             class_obj = class_member[1]
             if (class_obj != evasion_mother_class
                     and issubclass(class_obj, evasion_mother_class)):
-                print "possible evasion found : ", class_obj
                 evasion_folder = getattr(class_obj, "evasion_folder", None)
                 evasion_list = getattr(class_obj, "evasion_list", None)
                 if evasion_list is not None and evasion_folder is not None:
@@ -41,7 +40,7 @@ def _list_evasion_modules():
                             cur_dict[f] = {}
                         cur_dict = cur_dict[f]
                     for ev in evasion_list:
-                        cur_dict[ev.get_name()] = ev
+                        cur_dict[ev.get_id()] = ev
 
     def import_submodules_rec(path, name):
         for _loader, _modulename, _is_pkg in pkgutil.iter_modules(path=[path]):

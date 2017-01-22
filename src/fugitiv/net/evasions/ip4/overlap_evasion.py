@@ -22,7 +22,7 @@ class IP4OverlapFragEvasion(TestInfoBasedEvasion):
         TestInfoBasedEvasion.__init__(
             self, IP, conf.overlap_evasion, testid, outputid, reverse, signature=signature)
 
-    def evade_signature(self, pkt, sign_begin, sign_size):
+    def evade_signature(self, pkt, sign_begin, sign_size, logger):
 
         frag_id = random.randint(0, 65535)
 
@@ -56,7 +56,7 @@ class IP4OverlapFragEvasion(TestInfoBasedEvasion):
         if self._reverse:
             fragment_list = common.reverse_frag_list(fragment_list, True, True)
 
-        fragutils.print_frag_list(fragment_list)
+        fragutils.print_frag_list(fragment_list, logger)
 
         return fragment_list
 

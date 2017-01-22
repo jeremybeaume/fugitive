@@ -22,7 +22,7 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion):
         TestInfoBasedEvasion.__init__(
             self, IP, conf.mf_flag_evasion, testid, outputid, reverse, signature=signature)
 
-    def evade_signature(self, pkt, sign_begin, sign_size):
+    def evade_signature(self, pkt, sign_begin, sign_size, logger):
 
         frag_id = random.randint(0, 65535)
 
@@ -53,7 +53,7 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion):
             fragment_list = common.reverse_frag_list(
                 fragment_list, False, False)
 
-        fragutils.print_frag_list(fragment_list)
+        fragutils.print_frag_list(fragment_list, logger)
 
         return fragment_list
 

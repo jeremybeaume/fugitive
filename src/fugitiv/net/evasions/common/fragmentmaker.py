@@ -75,7 +75,6 @@ def make_fragment_evasion(
         end_injected_group_size = [frag_sizes[-1]] * \
             (evasion_size - 1 - last_actual_content_offset)
         group_sizes = [pre_size] + frag_sizes + end_injected_group_size + [0]
-        print group_sizes
     else:
 
         # division of the offset space between the fragment groups

@@ -5,15 +5,14 @@
 import random
 from scapy.all import *
 
-from ...utils import *
-
-from ifacelistener import *
-import utils
+from ... import utils
+from ifacelistener import PacketReceiver
+import sockutils
 
 
 class TCPsocket(PacketReceiver):
 
-    SOCKET_TIMEOUT = 3
+    SOCKET_TIMEOUT = 0.5
 
     INIT, SYN_SENT, SYN_RECVD, ESTABLISHED = range(4)
     _state_str = ["INIT", "SYN_SENT", "SYN_RECVD", "ESTABLISHED"]
@@ -27,7 +26,9 @@ class TCPsocket(PacketReceiver):
     ECE = 0x40
     CWR = 0x80
 
-    def __init__(self, iface, target, port, evasion=None):
+    def __init__(self, iface, target, port, evasion=None,
+                 logger=utils.testlogger.none_logger):
+
         PacketReceiver.__init__(self, iface)
         self._iface = iface
         self._evasion = evasion
@@ -43,12 +44,14 @@ class TCPsocket(PacketReceiver):
         self._state = TCPsocket.INIT
         self._synchronized = False
 
+        self._logger = logger
+
     def connect(self):
         """
         Connect this socket
         """
-        self._src_ip = utils.get_iface_ip4(self._iface)
-        self._src_port = utils.get_source_port()
+        self._src_ip = sockutils.get_iface_ip4(self._iface)
+        self._src_port = sockutils.get_source_port()
 
         self._seq = random.randint(0, 65536)
         self._ack = 0
@@ -61,7 +64,11 @@ class TCPsocket(PacketReceiver):
         self._state = TCPsocket.SYN_SENT
 
         # Receive SYN_ACK packet
-        syn_ack = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+        try:
+            syn_ack = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+        except:
+            raise self._get_IOError("No answer from remote host {}:{}".format(
+                self._dst_ip, self._dst_port))
 
         # Check connection RST
         if (syn_ack[TCP].flags & TCPsocket.RST):
@@ -112,6 +119,7 @@ class TCPsocket(PacketReceiver):
         return data
 
     def close(self):
+        """ Try doing a FIN end, and if error or already not synchronized, send a RST """
         # send FIN_ACK packet
         if not self._synchronized and self._state != TCPsocket.INIT:
             self.reset()
@@ -129,7 +137,7 @@ class TCPsocket(PacketReceiver):
                     timeout=TCPsocket.SOCKET_TIMEOUT)
             except IOError:
                 # timeout de reception, we just leave
-                print_warning("FIN timeout with {}:{} on {}".format(
+                self._logger.log_warning("FIN timeout with {}:{} on {}".format(
                     self._dst_ip, self._dst_port, self._iface))
                 break
             if remote_fa_pkt[TCP].flags & TCPsocket.FIN:
@@ -139,7 +147,7 @@ class TCPsocket(PacketReceiver):
             # FIXME security : will never end if always receive ack pakets
 
         if remote_fa_pkt is not None:
-            # send final ack packet
+            # recv_packet has not timed out : send final ack packet
             self._ack = remote_fa_pkt[TCP].seq + 1
             final_ack_pkt = self._make_pkt(flags="A")
             self._send_pkt(final_ack_pkt)
@@ -148,22 +156,33 @@ class TCPsocket(PacketReceiver):
         PacketReceiver.close(self)
 
     def reset(self):
-        pkt = self._make_pkt(flags="RA")
-        sendp(Ether() / pkt, iface=self._iface, verbose=False)
+        """ Sends a RST packet """
+        pkt = Ether() / self._make_pkt(flags="RA")
+        self._logger.write_pkt(pkt)
+        sendp(pkt, iface=self._iface, verbose=False)
 
     #### UTILS ####
 
     def _send_pkt(self, pkt):
+        """ Sends a packet, and apply evasion if not None """
         # evade packet
         if self._evasion is not None:
-            pkt_list = self._evasion.evade(pkt)
+            pkt_list = self._evasion.evade(pkt, self._logger)
         else:
             pkt_list = [pkt]
 
         # send evaded packets
         for packet in pkt_list:
             # packet.show2()
-            sendp(Ether() / packet, iface=self._iface, verbose=False)
+            pkt = Ether() / packet
+            self._logger.write_pkt(pkt)
+            sendp(pkt, iface=self._iface, verbose=False)
+
+    def recv_packet(self, timeout=None):
+        """ Receive a packet, and log it """
+        pkt = PacketReceiver.recv_packet(self, timeout)
+        self._logger.write_pkt(pkt)
+        return pkt
 
     def _wait_ack(self, expected_seq, expected_ack):
         """ Wait for an ACK packet, and check synchronization """
@@ -206,7 +225,8 @@ class TCPsocket(PacketReceiver):
 
     def _get_IOError(self, msg):
         """ Create a formated Error """
-        return IOError(msg + " with {}:{} on {}".format(self._dst_ip, self._dst_port, self._iface))
+        self._logger.log_error(msg)
+        return IOError(msg)
 
     def __str__(self):
         s = "TCPConn[{}/{}:{}=>{}:{},{},seq={},ack={}]".format(

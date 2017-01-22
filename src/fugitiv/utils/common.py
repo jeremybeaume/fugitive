@@ -66,12 +66,14 @@ def sleep(n):
     time.sleep(n)
 
 
-def print_non_ascii_string(mystring):
+def get_non_ascii_string(mystring):
+    res = ""
     for c in mystring:
         if c in string.ascii_letters or c in string.digits or c in '*!?_-+=/\[]{}%$#@&':
-            sys.stdout.write(c)
+            res += c
         else:
-            sys.stdout.write('.')
+            res += "."
+    return res
 
 
 def get_flags_str(value, flags, spaces=False):
