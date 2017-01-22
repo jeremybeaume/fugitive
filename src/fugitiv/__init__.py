@@ -6,3 +6,5 @@ import net
 import utils
 import config
 import test
+
+import main_test

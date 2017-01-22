@@ -8,7 +8,8 @@ import string
 import math
 import pprint
 
-pp = pprint.PrettyPrinter(indent=4)
+_pp = pprint.PrettyPrinter(indent=4)
+pp = _pp.pprint
 
 
 class colors:

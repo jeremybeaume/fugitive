@@ -4,3 +4,4 @@
 
 from common import *
 import testlogger
+import evasionutils

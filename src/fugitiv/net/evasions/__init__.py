@@ -3,6 +3,9 @@
 # Written by : Jeremy BEAUME
 
 evasion_tree = {}
+"""
+NODE = dict{name:(NODE|evasion)}
+"""
 
 
 def _list_evasion_modules():
