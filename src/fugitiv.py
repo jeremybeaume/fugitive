@@ -1,0 +1,76 @@
+#!/usr/bin/python2
+# -*- coding: utf-8 -*-
+# Written by : Jeremy BEAUME
+
+import os
+import sys
+import argparse
+
+import fugitiv
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Fugitiv : evade detection")
+
+    #### TEST OPTIONS ####
+    test_group = parser.add_argument_group("Test options")
+    test_group.add_argument("-t", metavar='TARGET:PORT',
+                            help="Target of the test (ip_or_dns:port)")
+    test_group.add_argument("--no-check", action="store_true",
+                            help="Do not run connectivity check before testing")
+    test_group.add_argument("--check-only", action="store_true",
+                            help="Only run connectivity check, do not run tests")
+
+    # test_group.add_argument("-m", metavar="TEST METHOD",
+    #                        choices=["http"],
+    #                        help="test method")
+    # test_group.add_argument("-c", metavar="CONFIG FILE",
+    #                        help="path to a test configuration file (TODO)")
+
+    #### EVASION OPTIONS ####
+    evasion_group = parser.add_argument_group("Evasions selection")
+    evasion_group.add_argument("-e", metavar='EVASION_PATH',
+                               help="Specify which evasion to use. Do not set to select all")
+    evasion_group.add_argument("--list", action="store_true",
+                               help="If set : only print evasions selected (-e option)")
+
+    #### OUTPUT OPTIONS ####
+    output_group = parser.add_argument_group("Output")
+    output_group.add_argument("-o", metavar="FOLDER",
+                              help="Log (pcap & txt) output base directory")
+
+    #### OTHER ARGUMENTS ####
+    parser.add_argument("-v", action="count", default=0,
+                        help="verbose level")
+
+    args = parser.parse_args()
+
+    print repr(args)
+
+    # parse evasions options
+
+    # option e : get evasion list
+    folder = args.e
+    if folder is not None:
+        if folder[:1] == '/':  # remove first / if one
+            folder = folder[1:]
+        if folder[-1:] == '/':  # remove last / if one
+            folder = folder[:-1]
+    evasion_tree = fugitiv.utils.evasionutils.list_evasions_under(folder)
+    if evasion_tree is None:
+        sys.exit(1)
+
+    # if flag --list is True : simply print the result and leave
+    # Overwrite others arguments do to ... nothing =)
+    if args.list:
+        fugitiv.utils.evasionutils.print_evasion_tree(evasion_tree)
+        sys.exit(1)
+
+    fugitiv.main_test.run_tests(
+        evasion_tree=evasion_tree,
+        tester=fugitiv.test.http_evasion_tester,
+        outputfolder=args.o,
+        verbose=args.v,
+        do_check=(not args.no_check),
+        check_only=args.check_only
+    )

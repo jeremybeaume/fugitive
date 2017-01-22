@@ -41,8 +41,9 @@ class TestLogger:
         """
         Write the pcap output file, with packets from pkt_list
         """
-        self._pcap_out = wrpcap(
-            self._folder + "/" + self._name + ".pcap", self.pkt_list)
+        if self._folder is not None and self._name is not None:
+            self._pcap_out = wrpcap(
+                self._folder + "/" + self._name + ".pcap", self.pkt_list)
 
     def println(self, msg="", verbose=-1):
         self.write(msg + "\n", verbose)
@@ -69,7 +70,8 @@ class TestLogger:
         closes the txt output file
         write the pkt_list to the pcap_output file
         """
-        self._txt_trace_file.close()
+        if self._txt_trace_file is not None:
+            self._txt_trace_file.close()
         self.write_pcap()
 
     def _txt_trace(self, msg):

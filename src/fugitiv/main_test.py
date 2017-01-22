@@ -9,50 +9,38 @@ import utils
 #  iptables - A OUTPUT - p tcp - -tcp - flags RST RST - s 10.0.10.1 - j DROP
 
 
-def run_tests(evasion_name, tester, outputfolder, verbose):
+def run_tests(evasion_tree, tester, outputfolder, verbose, do_check, check_only):
 
-    evasion_to_test = utils.evasionutils.list_evasions_under(evasion_name)
+    if do_check:
+        if not tester.check_test():
+            sys.exit()
+        print
 
-    if not tester.check_test():
-        sys.exit()
-
-    print
-    test_all_evasion(tester, evasion_to_test, [], outputfolder, verbose)
+    if not check_only:
+        params = {
+            'verbose': verbose,
+            'outputfolder': outputfolder,
+            'tester': tester
+        }
+        utils.evasionutils.walk_evasion_tree(
+            evasion_tree, [], action=test_walker_action, params=params, print_title=True)
 
 """
 ############# UTILS ##################
 """
 
 
-def test_all_evasion(tester, evasion_tree, current_evasion_folder, outputfolder, verbose):
-    """ Test all evasion in an evasion tree """
-
-    if not isinstance(evasion_tree, dict):
-        launch_test(tester, evasion_tree, [], outputfolder, verbose)
-    else:
-        keys_list = sorted(evasion_tree.keys())
-        # folder keys : all keys with dict value
-        folder_keys = [x for x in keys_list if isinstance(
-            evasion_tree[x], dict)]
-        # evasion keys : all others keys
-        evasion_keys = [x for x in keys_list if x not in folder_keys]
-
-        # first launch all evasions in folder
-        for key in evasion_keys:
-            launch_test(tester, evasion_tree[key],
-                        current_evasion_folder, outputfolder, verbose)
-
-        # then explore subfolders
-        for key in folder_keys:
-            print(" " * (4 * len(current_evasion_folder)) + "[+] " + str(key))
-            test_all_evasion(tester,
-                             evasion_tree[key], current_evasion_folder + [key],
-                             outputfolder, verbose)
-
-
-def launch_test(tester, evasion, current_folder, outputfolder, verbose):
+def test_walker_action(evasion, current_folder, params):
     """ Test a single evasion """
-    log_folder = outputfolder + "/" + "/".join(current_folder)
+    outputfolder = params['outputfolder']
+    verbose = params['verbose']
+    tester = params['tester']
+
+    if outputfolder is not None:
+        log_folder = outputfolder + "/" + "/".join(current_folder)
+    else:
+        log_folder = None
+
     name = evasion.get_id()
 
     logger = utils.testlogger.TestLogger(
@@ -60,6 +48,8 @@ def launch_test(tester, evasion, current_folder, outputfolder, verbose):
 
     sys.stdout.write(" " * (4 * len(current_folder)) +
                      "[" + evasion.get_id() + "] " + evasion.get_name() + "  ")
+    if verbose > 0:
+        print  # ensure that log output on std out will be on new line
 
     res, msg = tester.test(evasion, logger)
 

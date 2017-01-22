@@ -14,7 +14,6 @@ def print_frag_list(fraglist, logger):
     i = 0
     for frag in fraglist:
         i += 1
-
         flag_str = get_flags_str(frag.flags, "MDE", spaces=True)
 
         logger.write(
