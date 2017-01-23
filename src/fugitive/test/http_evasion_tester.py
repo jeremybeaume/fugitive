@@ -15,16 +15,14 @@ def attack_payload(target):
 
 def check_test(target, port):
 
-    check_payload = "GET /?data=check HTTP/1.1\r\nHost:" + target + "\r\n\r\n"
-
     interface = net.socket.sockutils.get_iface_to_target(target)
 
     print "[?] Check connection"
     print "Output interface for {} is {}".format(target, interface)
-    s = net.TCPsocket(target, port, evasion=None)
+    s = net.TCPsocket(target, port)
     try:
         s.connect()
-        s.write(check_payload)
+        s.write('check connection')  # send dumb data and check there is an answer
         s.close()
         utils.print_success("CONNECTION OK")
     except IOError as e:
@@ -34,7 +32,7 @@ def check_test(target, port):
         return False
 
     print "[?] Check detection"
-    s = net.TCPsocket(target, 80, evasion=None)
+    s = net.TCPsocket(target, 80)
     try:
         s.connect()
         s.write(attack_payload(target))
@@ -48,14 +46,11 @@ def check_test(target, port):
 
 
 def test(target, port, evasion, testlogger):
-
-    if evasion is not None:
-        evasion.signature = signature
-
     ret = (True,)
 
     s = net.TCPsocket(target=target, port=port,
                       evasion=evasion,
+                      signature=signature,
                       logger=testlogger)
 
     try:

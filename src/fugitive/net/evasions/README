@@ -1,0 +1,21 @@
+# How to add an evasion :
+
+- It must be a class in a module under evasion package
+- Inherits baseevasion.BaseEvasion
+- Implement evade_signature
+- Provide 2 static members :
+    * evasion_folder : in which folder the evasions will appear in the research
+    * evasion_list : a list of evasion in the folder (IPv4/Fragmentation/Overlap evasion are all the same class)
+- Provide a an optional get_description() method, return a descritpion string
+
+An evasion has many parameters :
+
+name : is a name for the evasion to be displayed
+evasionid : is an identifier for the evasion (unique inside a folder : think filename here)
+evasion_type : 'injection' or 'bypass'
+    - injection : the packet is read correctly by the IPS, and badly by the target
+        => the packet to be evaded is a TCP RST, passed when the signature match
+    - bypass : the packet is not read correcly by the IPS, but received correctly by the target
+        => the evaded packet is the actual payload, with provided signature position to escape
+layer : the signature is search in the layer payload :
+    If layer is IP, the signature is searched in the IP payload (TCP header etc ...)

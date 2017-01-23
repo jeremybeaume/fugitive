@@ -1,0 +1,51 @@
+# General Test definition
+
+Used to take advantage of testinfoevasion, to make multiple evasions using
+just a little configuration.
+
+General scheme :
+
+a test_def_dict is a dict{test_id=int : test_info}
+
+test_info : dict {
+
+    # Name of the evasion
+    'name': 'Evasion Name',
+
+    'description' : 'A short description of what the evasion does'
+
+    # array of string, to be printed at the same indentation
+    # to show what the evasions does
+    'input': [
+            '|A B|  ',
+            '  |C D|'
+        ],
+
+    # Array of the different possible output
+    # Its size determines the number of possible evasions
+    # for each output, an evasion will take place, trying to insert a difference
+    # between detection and target
+    'output': ['|ABD|', '|ACD|'],
+
+    # an array of fragment information :
+    # for each output, describe what is to be sent to insert the state difference
+    'frags': [
+        # output |ABD|
+        [{'offset': 0, 'content': [1, 1]},  #offset and content are mandatory
+         {'offset': 1, 'content': [0, 1]}], #content is 0 means insert junk at the place
+        # output |ACD|
+        [{'offset': 0, 'content': [1, 0]},
+         {'offset': 1, 'content': [1, 1]}],
+    ],
+
+    # Where the evasion takes places (and so where the signature should be put)
+    'evaded': {'offset': 1, 'size': 1}
+
+    # test the evasion by sending fragments in the reversed order
+    'reverse': True,
+
+    # array containing bypass and inject string :
+    # bypass will try to send the payload, works when the detection system fails defragmentating, while the target does
+    # inject : will fragment a RST packet, works when the IDS defragments well, and the target fails
+    'type' = ['bypass', 'inject']
+}

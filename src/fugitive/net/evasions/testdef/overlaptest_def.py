@@ -25,6 +25,7 @@ IPv4 : All fragment have MF flag except the last one (both in offset and time)
 overlap_evasion = {
     0: {
         'name': 'Base fragmentation case',
+        'description': 'Base case : evasion should never work !',
         'input': [
             '|A|'
         ],
@@ -34,7 +35,8 @@ overlap_evasion = {
             [{'offset': 0, 'content': [1]}]
         ],
         'reverse': False,
-        'evaded': {'offset': 0, 'size': 1}
+        'evaded': {'offset': 0, 'size': 1},
+        'type': ['bypass', 'inject']
     },
     1: {
         'name': 'Begin-included',
@@ -52,7 +54,8 @@ overlap_evasion = {
              {'offset': 0, 'content': [1]}]
         ],
         'reverse': True,
-        'evaded': {'offset': 0, 'size': 1}
+        'evaded': {'offset': 0, 'size': 1},
+        'type': ['bypass', 'inject']
     },
     2: {
         'name': 'Middle-included',
@@ -69,8 +72,9 @@ overlap_evasion = {
             [{'offset': 0, 'content': [1, 0, 1]},
              {'offset': 1, 'content': [1]}]
         ],
+        'evaded': {'offset': 1, 'size': 1},
         'reverse': True,
-        'evaded': {'offset': 1, 'size': 1}
+        'type': ['bypass', 'inject']
     },
     3: {
         'name': 'End-included',
@@ -87,8 +91,9 @@ overlap_evasion = {
             [{'offset': 0, 'content': [1, 0]},
              {'offset': 1, 'content': [1]}],
         ],
+        'evaded': {'offset': 1, 'size': 1},
         'reverse': True,
-        'evaded': {'offset': 1, 'size': 1}
+        'type': ['bypass', 'inject']
     },
     4: {
         'name': 'One-Another overlap',
@@ -105,8 +110,9 @@ overlap_evasion = {
             [{'offset': 0, 'content': [1, 0]},
              {'offset': 1, 'content': [1, 1]}],
         ],
+        'evaded': {'offset': 1, 'size': 1},
         'reverse': True,
-        'evaded': {'offset': 1, 'size': 1}
+        'type': ['bypass', 'inject']
     },
     5: {
         'name': 'Fragment rewrite',
@@ -123,7 +129,8 @@ overlap_evasion = {
             [{'offset': 0, 'content': [0]},
              {'offset': 0, 'content': [1]}],
         ],
-        'reverse': False,
-        'evaded': {'offset': 0, 'size': 1}
+        'evaded': {'offset': 0, 'size': 1},
+        'reverse': True,
+        'type': ['bypass', 'inject']
     }
 }

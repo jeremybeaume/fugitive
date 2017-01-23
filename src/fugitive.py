@@ -10,7 +10,7 @@ import os
 import sys
 import argparse
 
-import fugitiv
+import fugitive
 
 if __name__ == "__main__":
 
@@ -58,14 +58,14 @@ if __name__ == "__main__":
             folder = folder[1:]
         if folder[-1:] == '/':  # remove last / if one
             folder = folder[:-1]
-    evasion_tree = fugitiv.utils.evasionutils.list_evasions_under(folder)
+    evasion_tree = fugitive.utils.evasionutils.list_evasions_under(folder)
     if evasion_tree is None:
         sys.exit(1)
 
     # if flag --list is True : simply print the result and leave
     # Overwrite others arguments do to ... nothing =)
     if args.list:
-        fugitiv.utils.evasionutils.print_evasion_tree(evasion_tree)
+        fugitive.utils.evasionutils.print_evasion_tree(evasion_tree)
         sys.exit(1)
 
     if args.t is None:
@@ -73,17 +73,17 @@ if __name__ == "__main__":
         sys.exit(1)
     else:
         try:
-            target, port = fugitiv.net.socket.sockutils.parse_target_port(
+            target, port = fugitive.net.socket.sockutils.parse_target_port(
                 args.t)
         except Exception as e:
             print str(e)
             sys.exit(1)
 
-    fugitiv.main_test.run_tests(
+    fugitive.main_test.run_tests(
         target=target,
         port=port,
         evasion_tree=evasion_tree,
-        tester=fugitiv.test.http_evasion_tester,
+        tester=fugitive.test.http_evasion_tester,
         outputfolder=args.o,
         verbose=args.v,
         do_check=(not args.no_check),

@@ -13,6 +13,7 @@ mf_flag_evasion = {
     0: {
         # defautl simple case
         'name': 'Base case (A,B,C, C no MF)',
+        'description': 'Base case : evasion should never work !',
         'input': [
             '|A-MF|          ',
             '     |B-MF|     ',
@@ -26,7 +27,8 @@ mf_flag_evasion = {
              {'offset': 2, 'content': [1], 'flags':None}]
         ],
         'evaded': {'offset': 1, 'size': 1},  # no real evasions
-        'reverse': True
+        'reverse': True,
+        'type': ['bypass', 'inject']
     },
 
     1: {
@@ -49,7 +51,8 @@ mf_flag_evasion = {
              {'offset': 2, 'content': [1], 'flags':'MF'}]
         ],
         'evaded': {'offset': 2, 'size': 1},
-        'reverse': False
+        'reverse': False,
+        'type': ['bypass', 'inject']
     },
 
     2: {
@@ -72,7 +75,8 @@ mf_flag_evasion = {
              {'offset': 1, 'content': [1], 'flags':None}]
         ],
         'evaded': {'offset': 2, 'size': 1},
-        'reverse': False
+        'reverse': False,
+        'type': ['bypass', 'inject']
     },
 
     3: {
@@ -92,7 +96,8 @@ mf_flag_evasion = {
              {'offset': 0, 'content': [1], 'flags':None}]
         ],
         'evaded': {'offset': 1, 'size': 1},
-        'reverse': False
+        'reverse': False,
+        'type': ['bypass', 'inject']
     },
 
     4: {
@@ -115,7 +120,8 @@ mf_flag_evasion = {
              {'offset': 1, 'content': [1], 'flags':None}]
         ],
         'evaded': {'offset': 2, 'size': 1},
-        'reverse': False
+        'reverse': False,
+        'type': ['bypass', 'inject']
     },
 
     # TODO : Overlapping fragment with MF flag : EVIIIIL

@@ -1,0 +1,5 @@
+Full test report : CSV outpout / XML output
+Fetch alerts after testing (http)
+Add server :
+    include server files in git repo + IDS signature file
+    allow custom payload
