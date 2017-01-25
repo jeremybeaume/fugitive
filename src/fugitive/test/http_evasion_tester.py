@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # author: Jérémy BEAUME
 
+import errno
+
 from .. import net
 from .. import utils
 
@@ -22,13 +24,19 @@ def check_test(target, port):
     s = net.TCPsocket(target, port)
     try:
         s.connect()
-        s.write('check connection')  # send dumb data and check there is an answer
+        # send dumb data and check there is an answer
+        s.write('check connection')
         s.close()
         utils.print_success("CONNECTION OK")
     except IOError as e:
         utils.print_error(str(e))
-        utils.print_error(
-            "You may want to run : iptables -A OUTPUT -p tcp --tcp-flags RST RST -o {} -j DROP".format(interface))
+        if e[0] == errno.EPERM:
+            utils.print_error("You neede to be root to send crafted packets !")
+        else:
+            utils.print_error(
+                "You may want to run : \n"
+                "iptables -A OUTPUT -p tcp --tcp-flags RST RST -o {} -j DROP"
+                .format(interface))
         return False
 
     print "[?] Check detection"

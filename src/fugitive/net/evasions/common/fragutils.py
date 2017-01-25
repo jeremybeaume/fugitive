@@ -27,8 +27,8 @@ def print_ip_frag_list(fraglist, logger, display_more={}):
         for k, v in display_more.iteritems():
             # ",key={<size}".format(value)
             logger.write(
-                ("," + k + "={:<" + str(v) + "}").format(getattr(frag[IP], k)))
-        logger.write(") : ")
+                ("," + k + "={:<" + str(v) + "}").format(getattr(frag[IP], k)), verbose=verbose)
+        logger.write(") : ", verbose=verbose)
         logger.write(' ' * frag[IP].frag * 8, verbose=verbose)
         logger.write(get_non_ascii_string(
             str(frag[IP].payload)), verbose=verbose)
