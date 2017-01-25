@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-evasion_tree = {}
+evasion_catalog = {}
 """
 NODE = dict{name:(NODE|evasion)}
 """
@@ -14,6 +14,7 @@ have 2 static attributes :
     - evasion_folder = str
     - evasion_list   = list[evasions]
 """
+
 
 def _list_evasion_modules():
     """
@@ -41,16 +42,9 @@ def _list_evasion_modules():
                 evasion_folder = getattr(class_obj, "evasion_folder", None)
                 evasion_list = getattr(class_obj, "evasion_list", None)
                 if evasion_list is not None and evasion_folder is not None:
-                    l = evasion_tree.get(evasion_folder, [])
-                    l += evasion_list
-                    folder_list = evasion_folder.split('/')
-                    cur_dict = evasion_tree
-                    for f in folder_list:
-                        if f not in cur_dict:
-                            cur_dict[f] = {}
-                        cur_dict = cur_dict[f]
                     for ev in evasion_list:
-                        cur_dict[ev.get_id()] = ev
+                        evasion_catalog[
+                            evasion_folder + "/" + ev.get_id()] = ev
 
     def import_submodules_rec(path, name):
         for _loader, _modulename, _is_pkg in pkgutil.iter_modules(path=[path]):
@@ -62,6 +56,7 @@ def _list_evasion_modules():
                 search_for_evasions_class(full_name)
 
     import_submodules_rec(sys.modules[__name__].__path__[0], __name__)
+
 
 _list_evasion_modules()
 del(_list_evasion_modules)

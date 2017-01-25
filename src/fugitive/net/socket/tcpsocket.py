@@ -197,6 +197,9 @@ class TCPsocket(PacketReceiver):
                                                                      logger=self._logger)
                     # adds the payload packet after
                     pkt_list = evaded_rst_frags + [pkt]
+                else:
+                    raise ValueError("Unrecognized evasion type \"{}\"".format(
+                        self._evasion.get_type()))
             else:
                 pkt_list = [pkt]
         else:

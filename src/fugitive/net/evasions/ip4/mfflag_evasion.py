@@ -9,8 +9,6 @@ from ..testinfoevasion import TestInfoBasedEvasion
 from .. import common
 from .. import testdef
 
-import fragutils
-
 
 class IP4MFFlagEvasion(TestInfoBasedEvasion):
 
@@ -53,7 +51,7 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion):
             fragment_list = common.reverse_frag_list(
                 fragment_list, False, False)
 
-        fragutils.print_frag_list(fragment_list, logger)
+        common.fragutils.print_ip_frag_list(fragment_list, logger)
 
         return fragment_list
 

@@ -122,9 +122,5 @@ mf_flag_evasion = {
         'evaded': {'offset': 2, 'size': 1},
         'reverse': False,
         'type': ['bypass', 'inject']
-    },
-
-    # TODO : Overlapping fragment with MF flag : EVIIIIL
-    # |A B| (MF)
-    # |C|   (  )
+    }
 }

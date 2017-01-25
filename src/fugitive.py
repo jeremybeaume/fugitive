@@ -58,14 +58,15 @@ if __name__ == "__main__":
             folder = folder[1:]
         if folder[-1:] == '/':  # remove last / if one
             folder = folder[:-1]
-    evasion_tree = fugitive.utils.evasionutils.list_evasions_under(folder)
-    if evasion_tree is None:
+    evasion_catalog = fugitive.utils.evasionutils.list_evasions_under(folder)
+    if evasion_catalog is None:
         sys.exit(1)
 
     # if flag --list is True : simply print the result and leave
     # Overwrite others arguments do to ... nothing =)
     if args.list:
-        fugitive.utils.evasionutils.print_evasion_tree(evasion_tree)
+
+        fugitive.utils.evasionutils.print_evasion_catalog(evasion_catalog)
         sys.exit(1)
 
     if args.t is None:
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     fugitive.main_test.run_tests(
         target=target,
         port=port,
-        evasion_tree=evasion_tree,
+        evasion_catalog=evasion_catalog,
         tester=fugitive.test.http_evasion_tester,
         outputfolder=args.o,
         verbose=args.v,
