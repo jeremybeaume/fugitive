@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     #### TEST OPTIONS ####
     test_group = parser.add_argument_group("Test options")
-    test_group.add_argument("-t", metavar='TARGET:PORT',
+    test_group.add_argument("-t", "--target", metavar='TARGET:PORT',
                             help="Target of the test (ip_or_dns:port)")
     test_group.add_argument("--no-check", action="store_true",
                             help="Do not run connectivity check before testing")
@@ -69,13 +69,13 @@ if __name__ == "__main__":
         fugitive.utils.evasionutils.print_evasion_catalog(evasion_catalog)
         sys.exit(1)
 
-    if args.t is None:
+    if args.target is None:
         print "Error : target required to run test (use -t TARGET:PORT)"
         sys.exit(1)
     else:
         try:
             target, port = fugitive.net.socket.sockutils.parse_target_port(
-                args.t)
+                args.target)
         except Exception as e:
             print str(e)
             sys.exit(1)

@@ -11,7 +11,7 @@ signature = "abcdefghijklmnopqrstuvwxyz"
 
 
 def attack_payload(target):
-    return ("GET /?data=" + signature + "   HTTP/1.1\r\n"
+    return ("GET /index.php?data=" + signature + "  HTTP/1.1\r\n"
             + "Host:" + target + "\r\n\r\n")
 
 
@@ -44,8 +44,13 @@ def check_test(target, port):
     try:
         s.connect()
         s.write(attack_payload(target))
+        rep = s.read()
         s.close()
-        utils.print_error("DETECTION FAILED")
+        if "SUCCESS" in rep:
+            utils.print_error("Test succeed : DETECTION FAILED")
+        else:
+            utils.print_error("Answer is not correct :")
+            print rep
         return False
     except IOError as e:
         utils.print_success("DETECTION OK : " + str(e))
