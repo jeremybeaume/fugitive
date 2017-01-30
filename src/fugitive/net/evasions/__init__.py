@@ -32,7 +32,7 @@ def _list_evasion_modules():
     evasion_mother_class = baseevasion.BaseEvasion
 
     def search_for_evasions_class(module):
-        # print "searching :", module
+        #print "searching :", module
         clsmembers = inspect.getmembers(sys.modules[module],
                                         lambda x: inspect.isclass(x) and x.__module__ == module)
         for class_member in clsmembers:

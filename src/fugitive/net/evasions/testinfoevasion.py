@@ -53,11 +53,12 @@ class TestInfoBasedEvasion(baseevasion.BaseEvasion):
         return res
 
     @staticmethod
-    def generate_evasion_list(test_info_dict, class_object):
+    def generate_evasion_list(test_info_dict, class_object, select_type=['bypass', 'inject']):
         evasion_list = class_object.evasion_list
 
         input_list = testdef.testdefutils.get_all_tests(test_info_dict)
 
         for t in input_list:
-            evasion_list.append(class_object(testid=t[0], outputid=t[1],
-                                             reverse=t[2], evasion_type=t[3]))
+            if t[3] in select_type:
+                evasion_list.append(class_object(testid=t[0], outputid=t[1],
+                                                 reverse=t[2], evasion_type=t[3]))

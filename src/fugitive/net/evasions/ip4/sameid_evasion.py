@@ -11,7 +11,7 @@ from .. import common
 
 class IP4SameIdEvasion(BaseEvasion):
 
-    evasion_folder = "IPv4/General"
+    evasion_folder = "IPv4/Fragmentation/Identifier"
     evasion_list = []
 
     def __init__(self, evasion_type):

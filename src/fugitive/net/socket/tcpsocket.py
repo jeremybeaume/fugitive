@@ -170,7 +170,7 @@ class TCPsocket(PacketReceiver):
         """ Sends a RST packet """
         pkt = Ether() / self._make_pkt(flags="RA")
         self._logger.write_pkt(pkt)
-        sendp(pkt, iface=self._iface, verbose=False)
+        #sendp(pkt, iface=self._iface, verbose=False)
 
     ######################
     #### SOCKET UTILS ####
@@ -221,21 +221,23 @@ class TCPsocket(PacketReceiver):
     def _wait_ack(self, expected_seq, expected_ack):
         """ Wait for an ACK packet, and check synchronization """
         self._synchronized = False
+        cont = True
+        while cont:
+            cont = False
+            try:
+                ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+            except IOError:
+                raise self._get_IOError(
+                    "Disconnected : No correct ACK from remote host")
 
-        try:
-            ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
-        except IOError:
-            raise self._get_IOError("Disconnected : No ACK from remote host")
+            if (ans[TCP].flags & TCPsocket.RST) != 0:
+                raise self._get_IOError("Disconnected : RST from remote host")
 
-        if (ans[TCP].flags & TCPsocket.RST) != 0:
-            raise self._get_IOError("Disconnected : RST from remote host")
-
-        if ans[TCP].seq != expected_seq:
-            raise self._get_IOError(
-                "Synchronize error : ack={} when remote host seq={}".format(self._ack, ans[TCP].seq))
-        elif ans[TCP].ack != expected_ack:
-            raise self._get_IOError(
-                "Synchronize error : seq={} when remote host ack={}".format(self._seq, ans[TCP].ack))
+            if ans[TCP].seq != expected_seq:
+                raise self._get_IOError(
+                    "Synchronize error : expected seq={} when remote host seq={}".format(expected_seq, ans[TCP].seq))
+            elif ans[TCP].ack != expected_ack:
+                cont = True  # wait for ACK of all the sent data
 
         self._synchronized = True
 

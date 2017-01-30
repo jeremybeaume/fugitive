@@ -11,13 +11,13 @@ from .. import common
 
 class IP4BadChecksumEvasion(BaseEvasion):
 
-    evasion_folder = "IPv4/General"
+    evasion_folder = "IPv4/Fragmentation/General"
     evasion_list = []
 
     def __init__(self):
         # Init a signature Evasion on IP layer
         BaseEvasion.__init__(
-            self, name="BadChecksum injection", evasionid="BadChecksum",
+            self, name="BadChecksum  Fragment injection", evasionid="BadChecksum",
             evasion_type='inject', layer=IP)
 
     def evade_signature(self, pkt, sign_begin, sign_size, logger):

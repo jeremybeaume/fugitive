@@ -23,7 +23,7 @@ def print_ip_frag_list(fraglist, logger, display_more={}):
         flag_str = get_flags_str(frag.flags, "MDE", spaces=True)
 
         logger.write(
-            'Frag {:>2} (id={:<5},flag={:<3}'.format(i, frag.id, flag_str), verbose=verbose)
+            'Frag {:>2} (id={:<5},flag={:<3}'.format(i, frag[IP].id, flag_str), verbose=verbose)
         for k, v in display_more.iteritems():
             # ",key={<size}".format(value)
             logger.write(
@@ -32,4 +32,25 @@ def print_ip_frag_list(fraglist, logger, display_more={}):
         logger.write(' ' * frag[IP].frag * 8, verbose=verbose)
         logger.write(get_non_ascii_string(
             str(frag[IP].payload)), verbose=verbose)
+        logger.println(verbose=verbose)
+
+
+def print_tcp_frag_list(fraglist, logger, display_more={}):
+    verbose = 1
+    i = 0
+    min_seq = min(p[TCP].seq for p in fraglist)
+    for frag in fraglist:
+        i += 1
+        flag_str = get_flags_str(frag[TCP].flags, "FSRPAUEC", spaces=True)
+
+        logger.write(
+            'Frag {:>2} (flag={:<8}'.format(i, flag_str), verbose=verbose)
+        for k, v in display_more.iteritems():
+            # ",key={<size}".format(value)
+            logger.write(
+                ("," + k + "={:<" + str(v) + "}").format(getattr(frag[TCP], k)), verbose=verbose)
+        logger.write(") : ", verbose=verbose)
+        logger.write(' ' * (frag[TCP].seq - min_seq), verbose=verbose)
+        logger.write(get_non_ascii_string(
+            str(frag[TCP].payload)), verbose=verbose)
         logger.println(verbose=verbose)

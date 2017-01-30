@@ -5,7 +5,7 @@
 import scapy.all as scapy
 import Queue
 import threading
-import utils
+import sockutils
 
 from ...utils import *
 
@@ -105,7 +105,7 @@ class _IfaceSniffer:
 
     def __init__(self, iface):
         self._iface = iface
-        self._mac = utils.get_iface_mac(self._iface)
+        self._mac = sockutils.get_iface_mac(self._iface)
         self._started = False
 
     def start(self):
