@@ -288,7 +288,7 @@ class TCPsocket(PacketReceiver):
             data = str(pkt)
 
         # search the signature
-        p = data.find(self._signature)
+        p = data.find(str(self._signature))
         if p < 0:
             return (-1, -1)
         else:

@@ -2,4 +2,4 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-from http_evasion_tester import *
+from http_tester import *

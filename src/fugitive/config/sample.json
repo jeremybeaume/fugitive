@@ -1,0 +1,19 @@
+{
+    "targets" : {
+        "ubuntu": {
+            "ipv4" : "10.0.12.2",
+            "ipv4_broadcast" : "10.0.12.255",
+            "ttl" : null,
+
+            "http_port" : 80,
+            "http_host" : "10.0.12.2"
+        }
+    },
+    "tests" : {
+        "http" : {
+            "url" : "/index.php?data=abcdefghijklmnopqrstuvwxyz",
+            "signature" : "abcdefghijklmnopqrstuvwxyz",
+            "success" : "SUCCESS"
+        }
+    }
+}

@@ -7,17 +7,16 @@ import sys
 import utils
 
 
-def run_tests(target, port, evasion_catalog, tester, outputfolder, verbose, do_check, check_only):
+def run_tests(target_config, tester, tester_config, evasion_catalog, outputfolder, verbose, do_check, check_only):
 
     if do_check:
-        if not tester.check_test(target, port):
+        if not tester.check_test(target_config, tester_config):
             sys.exit()
         print
 
     if not check_only:
 
-        evasions_key_list = evasion_catalog.keys()
-        evasions_key_list = sorted(evasions_key_list)
+        evasions_key_list = sorted(evasion_catalog.keys())
         current_folder = None
 
         for key in evasions_key_list:
@@ -44,7 +43,8 @@ def run_tests(target, port, evasion_catalog, tester, outputfolder, verbose, do_c
             logger.println(evasion.get_description(), verbose=5)
             logger.println("===================================", verbose=5)
 
-            res, msg = tester.test(target, port, evasion, logger)
+            res, msg = tester.test(
+                target_config, tester_config, evasion, logger)
 
             logger.close()  # DO NOT FORGET !!
 

@@ -7,15 +7,16 @@ import errno
 from .. import net
 from .. import utils
 
-signature = "abcdefghijklmnopqrstuvwxyz"
+
+def _attack_payload(target_config, tester_config):
+    return ("GET " + tester_config["url"] + "  HTTP/1.1\r\n"
+            + "Host:" + target_config["http_host"] + "\r\n\r\n")
 
 
-def attack_payload(target):
-    return ("GET /index.php?data=" + signature + "  HTTP/1.1\r\n"
-            + "Host:" + target + "\r\n\r\n")
+def check_test(target_config, tester_config):
 
-
-def check_test(target, port):
+    target = target_config["ipv4"]
+    port = target_config["http_port"]
 
     interface = net.socket.sockutils.get_iface_to_target(target)
 
@@ -43,7 +44,7 @@ def check_test(target, port):
     s = net.TCPsocket(target, 80)
     try:
         s.connect()
-        s.write(attack_payload(target))
+        s.write(_attack_payload(target_config, tester_config))
         rep = s.read()
         s.close()
         if "SUCCESS" in rep:
@@ -58,25 +59,26 @@ def check_test(target, port):
     return True
 
 
-def test(target, port, evasion, testlogger):
+def test(target_config, tester_config, evasion, testlogger):
     ret = (True,)
 
-    s = net.TCPsocket(target=target, port=port,
+    s = net.TCPsocket(target=target_config["ipv4"],
+                      port=target_config["http_port"],
                       evasion=evasion,
-                      signature=signature,
+                      signature=tester_config["signature"],
                       logger=testlogger)
 
     try:
         s.connect()
-        payload = attack_payload(target)
+        payload = _attack_payload(target_config, tester_config)
         testlogger.println("Writing payload :\n{}\n".format(payload),
-                           verbose=5)
+                           verbose=2)
         s.write(payload)
         rep = s.read()
-        testlogger.println("Answer from server :\n{}\n".format(rep), verbose=5)
+        testlogger.println("Answer from server :\n{}\n".format(rep), verbose=2)
 
         # print rep
-        if "SUCCESS" in rep:
+        if tester_config["success"] in rep:
             ret = (True, '')
         else:
             ret = (False, "Bad response from server")

@@ -5,6 +5,6 @@
 import net
 import utils
 import config
-import test
+import tester
 
 import main_test
