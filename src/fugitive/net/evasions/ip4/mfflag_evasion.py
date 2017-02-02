@@ -20,7 +20,12 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion):
         TestInfoBasedEvasion.__init__(
             self, IP, testdef.mf_flag_evasion, testid, outputid, reverse, evasion_type)
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+
+        # when injecting : inject a tcp reset
+        if self._evasion_type == 'inject':
+            pkt_saved = pkt
+            pkt = socket.make_pkt(flags="RA")
 
         frag_id = random.randint(0, 65535)
 
@@ -52,6 +57,9 @@ class IP4MFFlagEvasion(TestInfoBasedEvasion):
                 fragment_list, False, False)
 
         common.fragutils.print_ip_frag_list(fragment_list, logger)
+
+        if self._evasion_type == 'inject':
+            fragment_list += [pkt_saved]
 
         return fragment_list
 

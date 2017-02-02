@@ -35,6 +35,8 @@ def get_iface_ip4(name):
     """ Return IPv4 addr for an interface """
     return netifaces.ifaddresses(name)[netifaces.AF_INET][0]["addr"]
 
+def get_iface_ip4_broadcast(name):
+    return netifaces.ifaddresses(name)[netifaces.AF_INET][0]["broadcast"]
 
 def get_iface_to_target(target):
     return scapy.all.conf.route.route(target)[0]

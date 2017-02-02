@@ -29,7 +29,7 @@ class TCPOverlapFragEvasion(TestInfoBasedEvasion):
         TestInfoBasedEvasion.__init__(
             self, IP, testdef.overlap_evasion, testid, outputid, reverse, 'bypass')
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
 
         def fragment_maker(offset, payload, frag_info):
             fragment = (IP(src=pkt[IP].src, dst=pkt[IP].dst,

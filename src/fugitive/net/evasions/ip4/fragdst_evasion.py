@@ -29,7 +29,12 @@ class IP4FragDstEvasion(BaseEvasion):
 
         self._spoofed_dst = spoofed_dst
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+
+        # when injecting : inject a tcp reset
+        if self._evasion_type == 'inject':
+            pkt_saved = pkt
+            pkt = socket.make_pkt(flags="RA")
 
         frag_id = random.randint(0, 65535)
 
@@ -52,6 +57,9 @@ class IP4FragDstEvasion(BaseEvasion):
 
         common.fragutils.print_ip_frag_list(
             fragment_list, logger, display_more={'dst': 15})
+
+        if self._evasion_type == 'inject':
+            fragment_list += [pkt_saved]
 
         return fragment_list
 

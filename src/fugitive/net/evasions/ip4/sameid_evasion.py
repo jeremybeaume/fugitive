@@ -22,7 +22,7 @@ class IP4SameIdEvasion(BaseEvasion):
             self, name=name, evasionid=evasion_id,
             evasion_type=evasion_type, layer=IP)
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
 
         frag_id = random.randint(0, 65535)
 

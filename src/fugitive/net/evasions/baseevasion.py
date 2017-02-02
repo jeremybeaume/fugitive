@@ -21,7 +21,7 @@ class BaseEvasion:
         self._evasionid = evasionid
         self._evasion_type = evasion_type
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
         """
         Evade the signature, starting in self._layer payload at begin and finishing at end
         pkt is a full layer 2 pkt to evade

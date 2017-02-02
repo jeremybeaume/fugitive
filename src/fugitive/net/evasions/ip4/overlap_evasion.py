@@ -25,7 +25,12 @@ class IP4OverlapFragEvasion(TestInfoBasedEvasion):
         TestInfoBasedEvasion.__init__(
             self, IP, testdef.overlap_evasion, testid, outputid, reverse, evasion_type)
 
-    def evade_signature(self, pkt, sign_begin, sign_size, logger):
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+
+        # when injecting : inject a tcp reset
+        if self._evasion_type == 'inject':
+            pkt_saved = pkt
+            pkt = socket.make_pkt(flags="RA")
 
         frag_id = random.randint(0, 65535)
 
@@ -60,6 +65,9 @@ class IP4OverlapFragEvasion(TestInfoBasedEvasion):
             fragment_list = common.reverse_frag_list(fragment_list, True, True)
 
         common.fragutils.print_ip_frag_list(fragment_list, logger)
+
+        if self._evasion_type == 'inject':
+            fragment_list += [pkt_saved]
 
         return fragment_list
 

@@ -37,22 +37,25 @@ class BaseTCP4Socket(PacketReceiver):
         iface, ip_dst, ip_src and port_src overwrite default scapy values
         """
 
-        self._iface = iface
-        if self._iface is None:
-            self._iface = sockutils.get_iface_to_target(target_config["ipv4"])
+        self.iface = iface
+        if self.iface is None:
+            self.iface = sockutils.get_iface_to_target(target_config["ipv4"])
 
         # init the receiver on socket interface
-        PacketReceiver.__init__(self, self._iface)
+        PacketReceiver.__init__(self, self.iface)
 
-        self._dst_ip = target_config["ipv4"]
-        self._dst_port = port
-        self._src_ip = ip_src
-        self._src_port = port_src
+        self.dst_ip = target_config["ipv4"]
+        self.dst_port = port
+        self.src_ip = ip_src
+        self.src_port = port_src
 
-        if self._src_ip is None:
-            self._src_ip = sockutils.get_iface_ip4(self._iface)
-        if self._src_port is None:
-            self._src_port = sockutils.get_source_port()
+        if self.src_ip is None:
+            self.src_ip = sockutils.get_iface_ip4(self.iface)
+
+        self._src_broadcast = sockutils.get_iface_ip4_broadcast(self.iface)
+
+        if self.src_port is None:
+            self.src_port = sockutils.get_source_port()
 
         self._seq = random.randint(0, 65536)
         self._ack = 0
@@ -70,7 +73,7 @@ class BaseTCP4Socket(PacketReceiver):
         """
 
         # SYN
-        syn_pkt = self._make_pkt(flags="S")
+        syn_pkt = self.make_pkt(flags="S")
         self._send_pkt(syn_pkt)
 
         # SYN_SENT state
@@ -81,7 +84,7 @@ class BaseTCP4Socket(PacketReceiver):
             syn_ack = self.recv_packet()
         except:
             raise self._get_IOError("No answer from remote host {}:{}".format(
-                self._dst_ip, self._dst_port))
+                self.dst_ip, self.dst_port))
 
         # Check connection RST
         if (syn_ack[TCP].flags & TCPstates.RST):
@@ -96,7 +99,7 @@ class BaseTCP4Socket(PacketReceiver):
         # Send ACK
         self._seq += 1
         self._ack = syn_ack[TCP].seq + 1
-        ack_pkt = self._make_pkt(flags="A")
+        ack_pkt = self.make_pkt(flags="A")
         self._send_pkt(ack_pkt)
 
         # State ESTABLISHED
@@ -104,7 +107,7 @@ class BaseTCP4Socket(PacketReceiver):
         self._synchronized = True
 
     def write(self, data):
-        pkt = self._make_pkt(flags="PA") / Raw(data)
+        pkt = self.make_pkt(flags="PA") / Raw(data)
         self._send_pkt(pkt)
 
         self._wait_ack(expected_seq=self._ack,
@@ -126,7 +129,7 @@ class BaseTCP4Socket(PacketReceiver):
 
         # send ACK packet
         self._ack += len(data)
-        ack_pkt = self._make_pkt(flags="A")
+        ack_pkt = self.make_pkt(flags="A")
         self._send_pkt(ack_pkt)
 
         return data
@@ -138,7 +141,7 @@ class BaseTCP4Socket(PacketReceiver):
             self.reset()
             return
 
-        fa_pkt = self._make_pkt(flags="FA")
+        fa_pkt = self.make_pkt(flags="FA")
         self._send_pkt(fa_pkt)
         self._seq += 1
 
@@ -150,7 +153,7 @@ class BaseTCP4Socket(PacketReceiver):
             except IOError:
                 # timeout de reception, we just leave
                 self._logger.log_warning("FIN timeout with {}:{} on {}".format(
-                    self._dst_ip, self._dst_port, self._iface))
+                    self.dst_ip, self.dst_port, self.iface))
                 break
             if remote_fa_pkt[TCP].flags & TCPstates.FIN:
                 # break after FIN Received
@@ -161,7 +164,7 @@ class BaseTCP4Socket(PacketReceiver):
         if remote_fa_pkt is not None:
             # recv_packet has not timed out : send final ack packet
             self._ack = remote_fa_pkt[TCP].seq + 1
-            final_ack_pkt = self._make_pkt(flags="A")
+            final_ack_pkt = self.make_pkt(flags="A")
             self._send_pkt(final_ack_pkt)
 
         # remove this socket from listening ones
@@ -169,9 +172,9 @@ class BaseTCP4Socket(PacketReceiver):
 
     def reset(self):
         """ Sends a RST packet directly (no evasions) """
-        pkt = Ether() / self._make_pkt(flags="RA")
+        pkt = Ether() / self.make_pkt(flags="RA")
         self._logger.write_pkt(pkt)
-        #sendp(pkt, iface=self._iface, verbose=False)
+        #sendp(pkt, iface=self.iface, verbose=False)
 
     ######################
     #### SOCKET UTILS ####
@@ -181,7 +184,7 @@ class BaseTCP4Socket(PacketReceiver):
         """ Sends a packet and log it """
         pkt = Ether() / pkt
         self._logger.write_pkt(pkt)
-        sendp(pkt, iface=self._iface, verbose=False)
+        sendp(pkt, iface=self.iface, verbose=False)
 
     def recv_packet(self):
         """ Receive a packet, and log it """
@@ -213,10 +216,10 @@ class BaseTCP4Socket(PacketReceiver):
 
         self._synchronized = True
 
-    def _make_pkt(self, flags="A"):
+    def make_pkt(self, flags="A"):
         """ Create packet with current seq / ack """
-        pkt = IP(src=self._src_ip, dst=self._dst_ip) \
-            / TCP(sport=self._src_port, dport=self._dst_port,
+        pkt = IP(src=self.src_ip, dst=self.dst_ip) \
+            / TCP(sport=self.src_port, dport=self.dst_port,
                   seq=self._seq, ack=self._ack,
                   flags=flags.upper())
         return pkt
@@ -224,10 +227,10 @@ class BaseTCP4Socket(PacketReceiver):
     def packet_for_me(self, pkt):
         """ Return True if packet is destined to this socket, implements PacketReceiver"""
         if pkt.haslayer(IP) and pkt.haslayer(TCP):
-            return ((pkt[IP].src == self._dst_ip)
-                    and (pkt[IP].dst == self._src_ip)
-                    and (pkt[TCP].sport == self._dst_port)
-                    and (pkt[TCP].dport == self._src_port))
+            return ((pkt[IP].src == self.dst_ip)
+                    and (pkt[IP].dst == self.src_ip or pkt[IP].dst == self._src_broadcast)
+                    and (pkt[TCP].sport == self.dst_port)
+                    and (pkt[TCP].dport == self.src_port))
         else:
             return False
 

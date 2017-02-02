@@ -29,23 +29,8 @@ class EvasionTCP4Socket(BaseTCP4Socket):
             (sign_begin, sign_size) = self._find_signature(pkt)
             # returns (-1,-1) if self._signature is none
             if sign_size > 0:  # if signature matched
-
-                if self._evasion.get_type() == 'bypass':
-                    # give the packet to bypass
-                    pkt_list = self._evasion.evade_signature(pkt, sign_begin=sign_begin,
-                                                             sign_size=sign_size, logger=self._logger)
-                elif self._evasion.get_type() == 'inject':
-                    # gives a TCP RST to inject, and adds the true payload
-                    # packet after
-                    self._logger.println("Injecting TCP RST", verbose=1)
-                    evaded_rst_frags = self._evasion.evade_signature(self._make_pkt(flags="RA"),
-                                                                     sign_begin=-1, sign_size=-1,
-                                                                     logger=self._logger)
-                    # adds the payload packet after
-                    pkt_list = evaded_rst_frags + [pkt]
-                else:
-                    raise ValueError("Unrecognized evasion type \"{}\"".format(
-                        self._evasion.get_type()))
+                pkt_list = self._evasion.evade_signature(socket=self, pkt=pkt, sign_begin=sign_begin,
+                                                         sign_size=sign_size, logger=self._logger)
             else:
                 pkt_list = [pkt]
         else:
