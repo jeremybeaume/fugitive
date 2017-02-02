@@ -2,5 +2,7 @@
 # -*- coding: utf-8 -*-
 # Written by : Jeremy BEAUME
 
-from tcpsocket import TCPsocket
+from basetcpsocket import BaseTCP4Socket, TCPstates
+from evasionsocket import EvasionTCP4Socket
+
 import sockutils

@@ -22,7 +22,7 @@ def check_test(target_config, tester_config):
 
     print "[?] Check connection"
     print "Output interface for {} is {}".format(target, interface)
-    s = net.TCPsocket(target, port)
+    s = net.EvasionTCP4Socket(target_config=target_config, port=port)
     try:
         s.connect()
         # send dumb data and check there is an answer
@@ -41,7 +41,7 @@ def check_test(target_config, tester_config):
         return False
 
     print "[?] Check detection"
-    s = net.TCPsocket(target, 80)
+    s = net.EvasionTCP4Socket(target_config=target_config, port=80)
     try:
         s.connect()
         s.write(_attack_payload(target_config, tester_config))
@@ -62,11 +62,11 @@ def check_test(target_config, tester_config):
 def test(target_config, tester_config, evasion, testlogger):
     ret = (True,)
 
-    s = net.TCPsocket(target=target_config["ipv4"],
-                      port=target_config["http_port"],
-                      evasion=evasion,
-                      signature=tester_config["signature"],
-                      logger=testlogger)
+    s = net.EvasionTCP4Socket(target_config=target_config,
+                              port=target_config["http_port"],
+                              evasion=evasion,
+                              signature=tester_config["signature"],
+                              logger=testlogger)
 
     try:
         s.connect()

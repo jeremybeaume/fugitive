@@ -10,9 +10,7 @@ from ifacelistener import PacketReceiver
 import sockutils
 
 
-class TCPsocket(PacketReceiver):
-
-    SOCKET_TIMEOUT = 0.5
+class TCPstates:
 
     INIT, SYN_SENT, SYN_RECVD, ESTABLISHED = range(4)
     _state_str = ["INIT", "SYN_SENT", "SYN_RECVD", "ESTABLISHED"]
@@ -26,34 +24,43 @@ class TCPsocket(PacketReceiver):
     ECE = 0x40
     CWR = 0x80
 
-    def __init__(self, target, port,
-                 evasion=None, signature=None,
+
+class BaseTCP4Socket(PacketReceiver):
+
+    SOCKET_TIMEOUT = 0.5
+
+    def __init__(self, target_config, port, iface=None,
                  logger=utils.testlogger.none_logger,
-                 iface=None
+                 ip_dst=None, ip_src=None, port_src=None
                  ):
+        """
+        iface, ip_dst, ip_src and port_src overwrite default scapy values
+        """
 
         self._iface = iface
         if self._iface is None:
-            self._iface = sockutils.get_iface_to_target(target)
+            self._iface = sockutils.get_iface_to_target(target_config["ipv4"])
 
         # init the receiver on socket interface
         PacketReceiver.__init__(self, self._iface)
 
-        self._evasion = evasion
-
-        self._dst_ip = target
+        self._dst_ip = target_config["ipv4"]
         self._dst_port = port
-        self._src_ip = "0.0.0.0"
-        self._src_port = 0
+        self._src_ip = ip_src
+        self._src_port = port_src
 
-        self._seq = 0
+        if self._src_ip is None:
+            self._src_ip = sockutils.get_iface_ip4(self._iface)
+        if self._src_port is None:
+            self._src_port = sockutils.get_source_port()
+
+        self._seq = random.randint(0, 65536)
         self._ack = 0
 
-        self._state = TCPsocket.INIT
+        self._state = TCPstates.INIT
         self._synchronized = False
 
         self._logger = logger
-        self._signature = signature
 
     ###### SOCKET API ######
 
@@ -61,32 +68,27 @@ class TCPsocket(PacketReceiver):
         """
         Connect this socket
         """
-        self._src_ip = sockutils.get_iface_ip4(self._iface)
-        self._src_port = sockutils.get_source_port()
-
-        self._seq = random.randint(0, 65536)
-        self._ack = 0
 
         # SYN
         syn_pkt = self._make_pkt(flags="S")
         self._send_pkt(syn_pkt)
 
         # SYN_SENT state
-        self._state = TCPsocket.SYN_SENT
+        self._state = TCPstates.SYN_SENT
 
         # Receive SYN_ACK packet
         try:
-            syn_ack = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+            syn_ack = self.recv_packet()
         except:
             raise self._get_IOError("No answer from remote host {}:{}".format(
                 self._dst_ip, self._dst_port))
 
         # Check connection RST
-        if (syn_ack[TCP].flags & TCPsocket.RST):
+        if (syn_ack[TCP].flags & TCPstates.RST):
             raise self._get_IOError("Connection RESET")
         # Check SYN ACK
-        elif ((syn_ack[TCP].flags & TCPsocket.SYN) == 0
-              or (syn_ack[TCP].flags & TCPsocket.ACK) == 0):
+        elif ((syn_ack[TCP].flags & TCPstates.SYN) == 0
+              or (syn_ack[TCP].flags & TCPstates.ACK) == 0):
             raise self._get_IOError("Connection received not a SYN ACK packet")
 
         # SYN_ACK received
@@ -98,7 +100,7 @@ class TCPsocket(PacketReceiver):
         self._send_pkt(ack_pkt)
 
         # State ESTABLISHED
-        self._state = TCPsocket.ESTABLISHED
+        self._state = TCPstates.ESTABLISHED
         self._synchronized = True
 
     def write(self, data):
@@ -113,11 +115,11 @@ class TCPsocket(PacketReceiver):
 
     def read(self, timeout=None):
         try:
-            ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+            ans = self.recv_packet()
         except IOError:
             raise self._get_IOError("Read timeout")
 
-        if not (ans[TCP].flags & TCPsocket.PSH):
+        if not (ans[TCP].flags & TCPstates.PSH):
             raise self._get_IOError("Not a PSH packet")
 
         data = ans[Raw].load
@@ -132,7 +134,7 @@ class TCPsocket(PacketReceiver):
     def close(self):
         """ Try doing a FIN end, and if error or already not synchronized, send a RST """
         # send FIN_ACK packet
-        if not self._synchronized and self._state != TCPsocket.INIT:
+        if not self._synchronized and self._state != TCPstates.INIT:
             self.reset()
             return
 
@@ -144,14 +146,13 @@ class TCPsocket(PacketReceiver):
         remote_fa_pkt = None
         while 1:
             try:
-                remote_fa_pkt = self.recv_packet(
-                    timeout=TCPsocket.SOCKET_TIMEOUT)
+                remote_fa_pkt = self.recv_packet()
             except IOError:
                 # timeout de reception, we just leave
                 self._logger.log_warning("FIN timeout with {}:{} on {}".format(
                     self._dst_ip, self._dst_port, self._iface))
                 break
-            if remote_fa_pkt[TCP].flags & TCPsocket.FIN:
+            if remote_fa_pkt[TCP].flags & TCPstates.FIN:
                 # break after FIN Received
                 break
             # while will end : either by fin ack, or timeout
@@ -167,7 +168,7 @@ class TCPsocket(PacketReceiver):
         PacketReceiver.close(self)
 
     def reset(self):
-        """ Sends a RST packet """
+        """ Sends a RST packet directly (no evasions) """
         pkt = Ether() / self._make_pkt(flags="RA")
         self._logger.write_pkt(pkt)
         #sendp(pkt, iface=self._iface, verbose=False)
@@ -177,44 +178,15 @@ class TCPsocket(PacketReceiver):
     ######################
 
     def _send_pkt(self, pkt):
-        """ Sends a packet, and apply evasion if not None """
-        # evade packet
-        if self._evasion is not None:
-            (sign_begin, sign_size) = self._find_signature(pkt)
-            # returns (-1,-1) if self._signature is none
-            if sign_size > 0:  # if signature matched
+        """ Sends a packet and log it """
+        pkt = Ether() / pkt
+        self._logger.write_pkt(pkt)
+        sendp(pkt, iface=self._iface, verbose=False)
 
-                if self._evasion.get_type() == 'bypass':
-                    # give the packet to bypass
-                    pkt_list = self._evasion.evade_signature(pkt, sign_begin=sign_begin,
-                                                             sign_size=sign_size, logger=self._logger)
-                elif self._evasion.get_type() == 'inject':
-                    # gives a TCP RST to inject, and adds the true payload
-                    # packet after
-                    self._logger.println("Injecting TCP RST", verbose=1)
-                    evaded_rst_frags = self._evasion.evade_signature(self._make_pkt(flags="RA"),
-                                                                     sign_begin=-1, sign_size=-1,
-                                                                     logger=self._logger)
-                    # adds the payload packet after
-                    pkt_list = evaded_rst_frags + [pkt]
-                else:
-                    raise ValueError("Unrecognized evasion type \"{}\"".format(
-                        self._evasion.get_type()))
-            else:
-                pkt_list = [pkt]
-        else:
-            pkt_list = [pkt]
-
-        # send evaded packets
-        for packet in pkt_list:
-            # packet.show2()
-            pkt = Ether() / packet
-            self._logger.write_pkt(pkt)
-            sendp(pkt, iface=self._iface, verbose=False)
-
-    def recv_packet(self, timeout=None):
+    def recv_packet(self):
         """ Receive a packet, and log it """
-        pkt = PacketReceiver.recv_packet(self, timeout)
+        pkt = PacketReceiver.recv_packet(
+            self, timeout=BaseTCP4Socket.SOCKET_TIMEOUT)
         self._logger.write_pkt(pkt)
         return pkt
 
@@ -225,12 +197,12 @@ class TCPsocket(PacketReceiver):
         while cont:
             cont = False
             try:
-                ans = self.recv_packet(timeout=TCPsocket.SOCKET_TIMEOUT)
+                ans = self.recv_packet()
             except IOError:
                 raise self._get_IOError(
                     "Disconnected : No correct ACK from remote host")
 
-            if (ans[TCP].flags & TCPsocket.RST) != 0:
+            if (ans[TCP].flags & TCPstates.RST) != 0:
                 raise self._get_IOError("Disconnected : RST from remote host")
 
             if ans[TCP].seq != expected_seq:
@@ -250,7 +222,7 @@ class TCPsocket(PacketReceiver):
         return pkt
 
     def packet_for_me(self, pkt):
-        """ Return True if packet is destined to this socket """
+        """ Return True if packet is destined to this socket, implements PacketReceiver"""
         if pkt.haslayer(IP) and pkt.haslayer(TCP):
             return ((pkt[IP].src == self._dst_ip)
                     and (pkt[IP].dst == self._src_ip)
@@ -263,33 +235,3 @@ class TCPsocket(PacketReceiver):
         """ Create a formated Error """
         self._logger.log_error(msg)
         return IOError(msg)
-
-    ######################
-    ### EVASION UTILS  ###
-    ######################
-
-    def _find_signature(self, pkt):
-        """
-        Search the signature in the layer payload content
-        return (begin, size) of the matched content, (-1,-1) if not found
-        """
-
-        if self._signature is None:
-            return (-1, -1)
-
-        # Check layer and get layer payload
-        layer = self._evasion.get_layer()
-        if layer is not None:
-            if pkt.haslayer(layer):
-                data = str(pkt[layer].payload)
-            else:
-                return (-1, -1)  # the pakcet has not the interrested layer
-        else:
-            data = str(pkt)
-
-        # search the signature
-        p = data.find(str(self._signature))
-        if p < 0:
-            return (-1, -1)
-        else:
-            return (p, p + len(self._signature))
