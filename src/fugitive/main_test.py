@@ -11,7 +11,7 @@ def run_tests(target_config, tester, tester_config, evasion_catalog, outputfolde
 
     if do_check:
         if not tester.check_test(target_config, tester_config):
-            sys.exit()
+            return None
         print
 
     if not check_only:

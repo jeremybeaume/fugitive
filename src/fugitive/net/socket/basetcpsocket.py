@@ -37,6 +37,8 @@ class BaseTCP4Socket(PacketReceiver):
         iface, ip_dst, ip_src and port_src overwrite default scapy values
         """
 
+        self.target_config = target_config
+
         self.iface = iface
         if self.iface is None:
             self.iface = sockutils.get_iface_to_target(target_config["ipv4"])

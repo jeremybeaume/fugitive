@@ -9,7 +9,7 @@ from ..baseevasion import BaseEvasion
 from .. import common
 
 
-class IP4FragDstEvasion(BaseEvasion):
+class IP4FragDstBroadcastEvasion(BaseEvasion):
     """
     Mess with defragmenting key :
     inject a fragment with same IPsrc, sameID, but different IP dst (not the target's one)
@@ -19,8 +19,8 @@ class IP4FragDstEvasion(BaseEvasion):
     evasion_list = []
 
     def __init__(self, evasion_type, spoofed_dst=None):
-        name = "Fragment Destination " + evasion_type
-        evasion_id = "FragDest." + evasion_type
+        name = "Fragment Broadcast Destination " + evasion_type
+        evasion_id = "FragDestBroadcast." + evasion_type
 
         BaseEvasion.__init__(
             self, name=name, evasionid=evasion_id,
@@ -52,7 +52,8 @@ class IP4FragDstEvasion(BaseEvasion):
             s[3] = str(int(s[3]) + 1)
             dst = ".".join(s)
 
-        fragment_list[1][IP].dst = dst  # change packet destination
+        fragment_list[1][IP].dst = socket.target_config[
+            "ipv4_broadcast"]  # change packet destination
 
         common.fragutils.print_ip_frag_list(
             fragment_list, logger, display_more={'dst': 15})
@@ -63,9 +64,7 @@ class IP4FragDstEvasion(BaseEvasion):
         return fragment_list
 
     def get_description(self):
-        return ("Inject fragment with a different (non existing) destination IP,"
-                "to check RFC 791 compliance.")
+        return ("Inject fragment with broacast as destination IP")
 
-
-IP4FragDstEvasion.evasion_list = [IP4FragDstEvasion('inject'),
-                                  IP4FragDstEvasion('bypass')]
+IP4FragDstBroadcastEvasion.evasion_list = [IP4FragDstBroadcastEvasion('inject'),
+                                           IP4FragDstBroadcastEvasion('bypass')]

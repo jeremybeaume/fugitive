@@ -1,0 +1,6 @@
+# Test rules
+
+# no alphabet
+drop http any any -> any any (msg:"alphabet detected"; content:"abcdefghijklmnopqrstuvwxyz"; nocase; classtype:policy-violation; sid:1; rev:1;)
+
+

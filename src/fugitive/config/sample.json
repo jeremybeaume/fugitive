@@ -1,12 +1,20 @@
 {
     "targets" : {
         "ubuntu": {
-            "ipv4" : "10.0.12.2",
-            "ipv4_broadcast" : "10.0.12.255",
+            "ipv4" : "192.168.189.202",
+            "ipv4_broadcast" : "192.168.189.255",
             "ttl" : null,
 
             "http_port" : 80,
-            "http_host" : "10.0.12.2"
+            "http_host" : "192.168.189.202"
+        },
+        "windows" : {
+            "ipv4" : "192.168.189.1",
+            "ipv4_broadcast" : "192.168.189.255",
+            "ttl" : null,
+
+            "http_port" : 80,
+            "http_host" : "192.168.189.1"
         }
     },
     "tests" : {

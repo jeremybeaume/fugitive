@@ -95,6 +95,8 @@ if __name__ == "__main__":
         tester = fugitive.tester.http_tester
         tester_config = config["tests"]["http"]
 
+        print "\n## Testing {} ##\n".format(target_name)
+
         fugitive.main_test.run_tests(
             target_config=target_config,
 
@@ -103,7 +105,7 @@ if __name__ == "__main__":
 
             evasion_catalog=evasion_catalog,
 
-            outputfolder=args.o,
+            outputfolder=args.o + "/" + target_name,
             verbose=args.v,
 
             do_check=(not args.no_check),
