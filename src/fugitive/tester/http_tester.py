@@ -43,8 +43,7 @@ def check_test(target_config, tester_config):
     print "[?] Check detection"
     s = net.EvasionTCP4Socket(target_config=target_config, port=80)
     try:
-        s.connect()
-        s.write(_attack_payload(target_config, tester_config))
+        s.connect(data=_attack_payload(target_config, tester_config))
         rep = s.read()
         s.close()
         if "SUCCESS" in rep:
@@ -69,11 +68,11 @@ def test(target_config, tester_config, evasion, testlogger):
                               logger=testlogger)
 
     try:
-        s.connect()
         payload = _attack_payload(target_config, tester_config)
-        testlogger.println("Writing payload :\n{}\n".format(payload),
+        testlogger.println("Connecting with stored payload :\n{}\n".format(payload),
                            verbose=2)
-        s.write(payload)
+
+        s.connect(data=payload)
         rep = s.read()
         testlogger.println("Answer from server :\n{}\n".format(rep), verbose=2)
 

@@ -21,13 +21,23 @@ class BaseEvasion:
         self._evasionid = evasionid
         self._evasion_type = evasion_type
 
+    def evade(self, socket, pkt, logger):
+        """
+        Evade any packet
+        called by the socket when a packet does not match the signature
+        default is to do nothing
+        """
+        pass
+
     def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
         """
         Evade the signature, starting in self._layer payload at begin and finishing at end
         pkt is a full layer 2 pkt to evade
-        if evasion_type is 'inject' : pkt is a TCP RST to inject
+        This method is called when the signature is matched by the socket
+        The default behavior is to call evade
+        An evasion that does not care about the signature should only overwrite evade
         """
-        raise NotImplemetedError
+        return self.evade(socket, pkt, logger)
 
     def get_name(self):
         return self._name

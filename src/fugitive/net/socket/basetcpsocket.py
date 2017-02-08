@@ -9,20 +9,7 @@ from ... import utils
 from ifacelistener import PacketReceiver
 import sockutils
 
-
-class TCPstates:
-
-    INIT, SYN_SENT, SYN_RECVD, ESTABLISHED = range(4)
-    _state_str = ["INIT", "SYN_SENT", "SYN_RECVD", "ESTABLISHED"]
-
-    FIN = 0x01
-    SYN = 0x02
-    RST = 0x04
-    PSH = 0x08
-    ACK = 0x10
-    URG = 0x20
-    ECE = 0x40
-    CWR = 0x80
+from defines import TCPstates
 
 
 class BaseTCP4Socket(PacketReceiver):
@@ -62,7 +49,7 @@ class BaseTCP4Socket(PacketReceiver):
         self._seq = random.randint(0, 65536)
         self._ack = 0
 
-        self._state = TCPstates.INIT
+        self.state = TCPstates.INIT
         self._synchronized = False
 
         self._logger = logger
@@ -79,7 +66,7 @@ class BaseTCP4Socket(PacketReceiver):
         self._send_pkt(syn_pkt)
 
         # SYN_SENT state
-        self._state = TCPstates.SYN_SENT
+        self.state = TCPstates.SYN_SENT
 
         # Receive SYN_ACK packet
         try:
@@ -105,7 +92,7 @@ class BaseTCP4Socket(PacketReceiver):
         self._send_pkt(ack_pkt)
 
         # State ESTABLISHED
-        self._state = TCPstates.ESTABLISHED
+        self.state = TCPstates.ESTABLISHED
         self._synchronized = True
 
     def write(self, data):
@@ -139,7 +126,7 @@ class BaseTCP4Socket(PacketReceiver):
     def close(self):
         """ Try doing a FIN end, and if error or already not synchronized, send a RST """
         # send FIN_ACK packet
-        if not self._synchronized and self._state != TCPstates.INIT:
+        if not self._synchronized and self.state != TCPstates.INIT:
             self.reset()
             return
 

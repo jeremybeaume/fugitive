@@ -22,6 +22,21 @@ class EvasionTCP4Socket(BaseTCP4Socket):
         self._evasion = evasion
         self._signature = signature
 
+        self.data = ''
+
+    def connect(self, data=''):
+        """
+        Connect the socket as usual
+        except self.data will hold the data to be writen
+        some TCP evasion may read those data to insert payload
+        in the very firsts packets
+        """
+        self.data = data
+        BaseTCP4Socket.connect(self)
+        if len(self.data) > 0:
+            self.write(self.data)
+            self.data = ''
+
     def _send_pkt(self, pkt):
         """ Sends a packet, and apply evasion if not None """
         # evade packet
@@ -32,7 +47,8 @@ class EvasionTCP4Socket(BaseTCP4Socket):
                 pkt_list = self._evasion.evade_signature(socket=self, pkt=pkt, sign_begin=sign_begin,
                                                          sign_size=sign_size, logger=self._logger)
             else:
-                pkt_list = [pkt]
+                pkt_list = self._evasion.evade(
+                    socket=self, pkt=pkt, logger=self._logger)
         else:
             pkt_list = [pkt]
 
