@@ -1,6 +1,22 @@
 #!/usr/bin/python2
 # -*- coding: utf-8 -*-
-# Written by : Jeremy BEAUME
+
+# Fugitive : Network evasion tester
+# Copyright (C) 2017 Jérémy BEAUME (jeremy [dot] beaume (a) protonmail [dot] com)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 # remove scapy warninng
 import logging
@@ -12,8 +28,32 @@ import argparse
 
 import fugitive
 
-if __name__ == "__main__":
 
+def print_copyright():
+    copyright_file = os.path.dirname(
+        os.path.realpath(__file__)) + "/../COPYRIGHT"
+    with open(copyright_file, "r") as f:
+        print(f.read())
+
+
+def print_header():
+    print get_version()
+    print ""
+    print "Copyright (C) 2017 Jérémy BEAUME"
+    print ""
+    print ("This program is distributed in the hope that it will be useful,\n"
+           "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+           "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+           "See LICENSE and COPYRIGHT files for details.")
+    print ""
+
+
+def get_version():
+    import subprocess
+    commit = subprocess.check_output(['git', 'show', '--oneline', '-s'])[:7]
+    return "Fugitive version git-" + str(commit)
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fugitiv : evade detection")
 
     #### Main options ####
@@ -43,9 +83,24 @@ if __name__ == "__main__":
     parser.add_argument("-v", action="count", default=0,
                         help="verbose level")
 
+    parser.add_argument("-q", action="store_true",
+                        help="Do not print the header")
+
+    parser.add_argument("--license", action="store_true",
+                        help="show copyright/license informations")
+    parser.add_argument("--version", action="store_true", help="")
+
     args = parser.parse_args()
 
     # parse evasions options
+
+    if args.license:
+        print_copyright()
+        sys.exit()
+
+    if args.version:
+        print get_version()
+        sys.exit()
 
     # option e : get evasion list
     folder = args.e
@@ -86,6 +141,9 @@ if __name__ == "__main__":
             sys.exit(1)
         else:
             target_list = [args.target]  # only select the one chosen
+
+    if not args.q:
+        print_header()
 
     for target_name in target_list:
 
