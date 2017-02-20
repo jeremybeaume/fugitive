@@ -26,34 +26,28 @@ from .. import common
 from ...socket.defines import TCPstates
 
 
-class TCPFirstAckDataEvasion(BaseEvasion):
+class TCPFinInWindowEvasion(BaseEvasion):
     """
-    Inject payload in the SYN packet
+    Inject a FIN in the window, but not the next SEQ (RFC 5961)
     """
 
-    evasion_folder = "TCP/Connection"
+    evasion_folder = "TCP/Window"
     evasion_list = []
 
     def __init__(self):
-        name = "First ACK data connection bypass"
-        evasion_id = "FirstAckData"
+        name = "Fin in Window"
+        evasion_id = "FinInWin"
 
         BaseEvasion.__init__(
             self, name=name, evasionid=evasion_id,
             evasion_type='bypass', layer=TCP)
 
-    def evade(self, socket, pkt, logger):
-        if pkt[TCP].flags == TCPstates.ACK and socket.state == TCPstates.SYN_SENT:
-            # this is the first ack packet
-            del pkt[TCP].chksum
-            del pkt[IP].chksum
-            del pkt[IP].len
-            pkt = pkt / Raw(socket.data)  # insert data
-            socket.data = ''
-
-        return [pkt]
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+        fin = socket.make_pkt(flags="FA")
+        fin[TCP].seq += 10  # in window, but not next SEQ
+        return [fin, pkt]
 
     def get_description(self):
-        return """Inject data in the first ACK packet"""
+        return """Inject a Fin inside the window (but not next SEQ : RFC 5961)"""
 
-TCPFirstAckDataEvasion.evasion_list = [TCPFirstAckDataEvasion()]
+TCPFinInWindowEvasion.evasion_list = [TCPFinInWindowEvasion()]

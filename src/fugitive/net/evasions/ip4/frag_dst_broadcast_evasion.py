@@ -27,7 +27,7 @@ from .. import common
 class IP4FragDstBroadcastEvasion(BaseEvasion):
     """
     Mess with defragmenting key :
-    inject a fragment with same IPsrc, sameID, but different IP dst (not the target's one)
+    inject a fragment with same IPsrc, sameID, but and broadcast IP dst
     """
 
     evasion_folder = "IPv4/Fragmentation/Identifier"

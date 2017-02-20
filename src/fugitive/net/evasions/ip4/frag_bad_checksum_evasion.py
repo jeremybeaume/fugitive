@@ -32,7 +32,7 @@ class IP4BadChecksumEvasion(BaseEvasion):
     def __init__(self):
         # Init a signature Evasion on IP layer
         BaseEvasion.__init__(
-            self, name="BadChecksum  Fragment injection", evasionid="BadChecksum",
+            self, name="FragBadChecksum  Fragment injection", evasionid="BadChecksum",
             evasion_type='inject', layer=IP)
 
     def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):

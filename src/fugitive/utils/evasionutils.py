@@ -33,8 +33,10 @@ def list_evasions_under(evasion_name):
     if evasion_name is None:
         return evasion_catalog
 
+    evasion_name = evasion_name.lower()
+
     res_dict = {key: evasion_catalog[
-        key] for key in evasion_catalog.keys() if key.startswith(evasion_name)}
+        key] for key in evasion_catalog.keys() if key.lower().startswith(evasion_name)}
 
     return res_dict
 

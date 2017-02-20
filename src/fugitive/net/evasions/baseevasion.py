@@ -42,7 +42,7 @@ class BaseEvasion:
         called by the socket when a packet does not match the signature
         default is to do nothing
         """
-        pass
+        return [pkt]
 
     def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
         """

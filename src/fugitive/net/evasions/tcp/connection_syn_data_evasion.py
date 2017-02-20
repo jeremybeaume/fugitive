@@ -44,9 +44,7 @@ class TCPSynDataEvasion(BaseEvasion):
 
     def evade(self, socket, pkt, logger):
         if pkt[TCP].flags == TCPstates.SYN:
-            del pkt[TCP].chksum
-            del pkt[IP].chksum
-            del pkt[IP].len
+            pkt = common.copy_pkt(pkt) # makes a new packet for scapy to compute fields
             pkt = pkt / Raw(socket.data)
             socket.data = ''
 

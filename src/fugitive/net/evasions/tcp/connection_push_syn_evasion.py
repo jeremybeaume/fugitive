@@ -26,35 +26,42 @@ from .. import common
 from ...socket.defines import TCPstates
 
 
-class TCPFirstAckPushDataEvasion(BaseEvasion):
+class TCPPushSynEvasion(BaseEvasion):
     """
-    Inject payload in the SYN packet
+    Add the SYN flag to the normal PUSH ACK packet
     """
 
     evasion_folder = "TCP/Connection"
     evasion_list = []
 
     def __init__(self):
-        name = "First ACK PUSH data connection bypass"
-        evasion_id = "FirstAckPushData"
+        name = "Push to Syn evasion"
+        evasion_id = "PushToSyn"
 
         BaseEvasion.__init__(
             self, name=name, evasionid=evasion_id,
             evasion_type='bypass', layer=TCP)
 
-    def evade(self, socket, pkt, logger):
-        if pkt[TCP].flags == TCPstates.ACK and socket.state == TCPstates.SYN_SENT:
-            # this is the first ack packet
-            del pkt[TCP].chksum
-            del pkt[IP].chksum
-            del pkt[IP].len
-            pkt[TCP].flags = "PA"
-            pkt = pkt / Raw(socket.data)  # insert data
-            socket.data = ''
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+        payload = str(pkt[TCP].payload)
+        #create 2 packets, dividing the signature in 2
+        divide=sign_begin + sign_size/2
 
-        return [pkt]
+        syn_pkt = common.copy_pkt(pkt, TCP) # makes a new packet for scapy to compute fields
+        syn_pkt[TCP].flags="SPA"
+        syn_pkt = syn_pkt / Raw(payload[:divide])
+
+        psh_pkt = common.copy_pkt(pkt, TCP)
+        psh_pkt[TCP].seq += divide
+        psh_pkt = psh_pkt / Raw(payload[divide:])
+
+        pkt_list = [syn_pkt, psh_pkt]
+
+        common.fragutils.print_tcp_frag_list(pkt_list, logger)
+
+        return pkt_list
 
     def get_description(self):
-        return """Inject data in the first ACK packet, and adds PUSH flag"""
+        return """First syn packet turned into SYN PUSH with data"""
 
-TCPFirstAckPushDataEvasion.evasion_list = [TCPFirstAckPushDataEvasion()]
+TCPPushSynEvasion.evasion_list = [TCPPushSynEvasion()]

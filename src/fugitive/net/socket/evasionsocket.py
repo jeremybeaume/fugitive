@@ -95,4 +95,4 @@ class EvasionTCP4Socket(BaseTCP4Socket):
         if p < 0:
             return (-1, -1)
         else:
-            return (p, p + len(self._signature))
+            return (p, len(self._signature))

@@ -30,6 +30,7 @@ def print_ip_frag_list(fraglist, logger, display_more={}):
     display_more is a dict{attribute:max_char_size}
     to display protol for example, use {'proto':4}
     it will display a 4 char wide field with protocol value
+    flags and id are always displayed
     """
     verbose = 1
     i = 0
@@ -51,6 +52,13 @@ def print_ip_frag_list(fraglist, logger, display_more={}):
 
 
 def print_tcp_frag_list(fraglist, logger, display_more={}):
+    """
+    Display tcp fragments list
+    display_more is a dict{attribute:max_char_size}
+    to display protol for example, use {'proto':4}
+    it will display a 4 char wide field with protocol value
+    flags are always displayed
+    """
     verbose = 1
     i = 0
     min_seq = min(p[TCP].seq for p in fraglist)

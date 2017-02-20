@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from scapy.all import *
+
 def reverse_frag_list(frag_list, pre_frag=False, post_frag=False):
     """
     Reverse a list.
@@ -39,3 +41,25 @@ def reverse_frag_list(frag_list, pre_frag=False, post_frag=False):
     l += frag_list[post:]
 
     return l;
+
+
+def copy_pkt(pkt, layer=None):
+    """
+    Get a copy of the packet, and removes all data that should
+    be calculated by scapy (checksum, ...)
+    delete the layer payload if layer is provided
+    """
+    res = pkt.copy()
+    if res.haslayer(TCP):
+        del res[TCP].chksum
+    if res.haslayer(IP):
+        del res[IP].chksum
+        del res[IP].len
+        del res[IP].proto
+        del res[IP].frag
+        del res[IP].id
+    if layer is not None:
+        if res.haslayer(layer):
+            del res[layer].payload
+
+    return res

@@ -26,34 +26,29 @@ from .. import common
 from ...socket.defines import TCPstates
 
 
-class TCPSynPushDataEvasion(BaseEvasion):
+class TCPRstOutWindowEvasion(BaseEvasion):
     """
-    Inject payload in the SYN packet
+    Inject a RST outside the window
     """
 
-    evasion_folder = "TCP/Connection"
+    evasion_folder = "TCP/Window"
     evasion_list = []
 
     def __init__(self):
-        name = "SYN push data connect bypass"
-        evasion_id = "SynPushData"
+        name = "Reset outside Window"
+        evasion_id = "RstOutWin"
 
         BaseEvasion.__init__(
             self, name=name, evasionid=evasion_id,
             evasion_type='bypass', layer=TCP)
 
-    def evade(self, socket, pkt, logger):
-        if pkt[TCP].flags == TCPstates.SYN:
-            del pkt[TCP].chksum
-            del pkt[IP].chksum
-            del pkt[IP].len
-            pkt[TCP].flags = "SP"
-            pkt = pkt / Raw(socket.data)
-            socket.data = ''
-
-        return [pkt]
+    def evade_signature(self, socket, pkt, sign_begin, sign_size, logger):
+        rst = socket.make_pkt(flags="RA")
+        # (reasonable) supposely outside window, but not next SEQ
+        rst[TCP].seq += (1 << 20)
+        return [rst, pkt]
 
     def get_description(self):
-        return """First syn packet turned into SYN PUSH with data"""
+        return """Inject a RST outside the window"""
 
-TCPSynPushDataEvasion.evasion_list = [TCPSynPushDataEvasion()]
+TCPRstOutWindowEvasion.evasion_list = [TCPRstOutWindowEvasion()]
