@@ -1,2 +1,6 @@
 Full test report : CSV outpout / XML output
 Fetch alerts after testing (http)
+
+Evasions :
+IP TTL
+tcp checksum
