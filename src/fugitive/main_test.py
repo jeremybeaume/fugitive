@@ -22,7 +22,7 @@ import sys
 import utils
 
 
-def run_tests(target_config, tester, tester_config, evasion_catalog, outputfolder, verbose, do_check, check_only):
+def run_tests(testreport, target_name, target_config, tester, tester_config, evasion_catalog, outputfolder, verbose, do_check, check_only):
 
     if do_check:
         if not tester.check_test(target_config, tester_config):
@@ -67,3 +67,10 @@ def run_tests(target_config, tester, tester_config, evasion_catalog, outputfolde
                 utils.print_success("SUCCESS")
             else:
                 utils.print_error("FAIL : " + msg)
+
+            testreport.addResult(machine_name=target_name,
+                tester=tester.name,
+                evasion_path=evasion.evasion_folder + '/' + evasion.get_id(),
+                evasion_name=evasion.get_name(),
+                result=(1 if res else 0),
+                reason=msg)

@@ -145,6 +145,8 @@ if __name__ == "__main__":
     if not args.q:
         print_header()
 
+    testreport = fugitive.utils.testreport.TestReport()
+
     for target_name in target_list:
 
         target_config = config["targets"][target_name]
@@ -159,6 +161,8 @@ if __name__ == "__main__":
         print "\n## Testing {} ##\n".format(target_name)
 
         fugitive.main_test.run_tests(
+            testreport=testreport,
+            target_name=target_name,
             target_config=target_config,
 
             tester=tester,
@@ -172,3 +176,9 @@ if __name__ == "__main__":
             do_check=(not args.no_check),
             check_only=args.check_only
         )
+
+    ## export testreport
+
+    if args.o is not None:
+        testreport.exportCSV(args.o + "/report.csv")
+        testreport.exportJSON(args.o + "/report.json")

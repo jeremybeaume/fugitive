@@ -26,7 +26,7 @@ import common
 
 class TestLogger:
     """
-    Log test data to a folder
+    Log test data to a folder (stdout and pcap)
     """
 
     def __init__(self, folder, name, verbose=0):
