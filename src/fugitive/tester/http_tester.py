@@ -24,7 +24,7 @@ from .. import utils
 name="http_tester"
 
 def _attack_payload(target_config, tester_config):
-    return ("GET " + tester_config["url"] + "  HTTP/1.1\r\n"
+    return ("GET " + tester_config["url"] + " HTTP/1.1\r\n"
             + "Host:" + target_config["http_host"] + "\r\n\r\n")
 
 
